@@ -39,6 +39,7 @@ import { ViewerActions } from './components/viewer-actions';
 import { ViewerOverlay } from './components/viewer-overlay';
 import { buildTimelineMarkers } from './timeline-markers';
 import { TransportControls } from './transport/transport-controls';
+import { useFavicon } from './use-favicon';
 import { useSongTransport } from './use-song-transport';
 import { useViewerControls } from './use-viewer-controls';
 import { useViewerSession } from './use-viewer-session';
@@ -140,6 +141,16 @@ export function ViewerShell() {
           watcherPlayerId: search.watcherPlayerId,
           authToken: search.authToken,
         };
+  const isBeatLeaderReplay =
+    sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
+  const themeColorPlatform = isBeatLeaderReplay
+    ? 'beatleader'
+    : sources.shareScoreId !== null
+      ? 'scoresaber'
+      : sources.mapIdentity !== null
+        ? 'beatsaver'
+        : 'default';
+  useFavicon(themeColorPlatform);
   const liveActive = liveTarget !== null;
   const remoteActive = liveActive || partyActive;
   const live = useLiveExperience({
@@ -325,6 +336,7 @@ export function ViewerShell() {
     liveTarget: liveTarget ?? undefined,
     mapIdentity: sources.mapIdentity,
     scoreId: sources.shareScoreId,
+    scoreIdBL: sources.shareScoreIdBL,
     selectedDifficultyIndex: session.selectedDifficultyIndex,
     settings,
     sourceLink: sources.sourceLink,
@@ -507,7 +519,7 @@ export function ViewerShell() {
         type="file"
         className="hidden"
         multiple
-        accept=".dat,.json,.zip,.ogg,.egg,.wav,.mp3"
+        accept=".dat,.bsor,.json,.zip,.ogg,.egg,.wav,.mp3"
         onChange={(event) => {
           void sources.loadFiles([...(event.currentTarget.files ?? [])]);
           event.currentTarget.value = '';
@@ -560,7 +572,8 @@ export function ViewerShell() {
                   coverUrl={sources.coverUrl}
                   mapKey={sources.mapIdentity?.key ?? null}
                   mapHash={sources.mapIdentity?.hash ?? null}
-                  scoreSaberUrl={session.scoreSaberUrl}
+                  leaderboardUrl={session.leaderboardUrl}
+                  leaderboardPlatform={session.leaderboardPlatform}
                   options={session.difficultyOptions}
                   selectedKey={session.selectedKey}
                   settingsOpen={settingsOpen}
@@ -611,7 +624,17 @@ export function ViewerShell() {
                 }}
               />
             ) : (
-              sources.replayPlayer !== null && <ReplayPlayerCard player={sources.replayPlayer} />
+              sources.replayPlayer !== null && (
+                <ReplayPlayerCard
+                  player={sources.replayPlayer}
+                  platform={
+                    sources.shareScoreIdBL !== null ||
+                    sources.replayRef.current?.metadata.version.includes('BeatLeader')
+                      ? 'beatleader'
+                      : 'scoresaber'
+                  }
+                />
+              )
             )}
           </div>
         </div>

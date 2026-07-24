@@ -7,6 +7,7 @@ export type ViewerShareSource =
   | { type: 'map'; mapKey: string; difficultyIndex?: number }
   | { type: 'replay'; replayUrl: string }
   | { type: 'score'; scoreId: string }
+  | { type: 'score-bl'; scoreId: string }
   | { type: 'live'; playerId: string; tournamentId?: string; roomId?: string; matchId?: string };
 
 const searchIdentifierSchema = z.union([z.string(), z.pipe(z.int(), z.transform(String))]);
@@ -38,6 +39,7 @@ export const viewerSearchSchema = z.pipe(
     map: z.catch(z.optional(mapSourceSchema), undefined),
     replayUrl: z.catch(z.optional(remoteSourceUrlSchema), undefined),
     scoreId: z.catch(z.optional(scoreIdSchema), undefined),
+    scoreIdBL: z.catch(z.optional(scoreIdSchema), undefined),
     difficulty: z.catch(z.optional(difficultyIndexSchema), undefined),
     beat: z.catch(z.optional(nonnegativeNumberSchema), undefined),
     autoplay: z.catch(z.optional(z.boolean()), undefined),
@@ -57,6 +59,7 @@ export const viewerSearchSchema = z.pipe(
         map: undefined,
         replayUrl: undefined,
         scoreId: undefined,
+        scoreIdBL: undefined,
         difficulty: undefined,
         beat: undefined,
         autoplay: undefined,
@@ -74,12 +77,15 @@ export const viewerSearchSchema = z.pipe(
         map: undefined,
         replayUrl: undefined,
         scoreId: undefined,
+        scoreIdBL: undefined,
         difficulty: undefined,
         beat: undefined,
       };
     }
-    if (search.replayUrl !== undefined) return { ...search, map: undefined, scoreId: undefined, difficulty: undefined };
-    if (search.scoreId !== undefined) return { ...search, map: undefined, difficulty: undefined };
+    if (search.replayUrl !== undefined)
+      return { ...search, map: undefined, scoreId: undefined, scoreIdBL: undefined, difficulty: undefined };
+    if (search.scoreId !== undefined) return { ...search, map: undefined, scoreIdBL: undefined, difficulty: undefined };
+    if (search.scoreIdBL !== undefined) return { ...search, map: undefined, scoreId: undefined, difficulty: undefined };
     return search;
   }),
 );
@@ -116,7 +122,7 @@ export function viewerSearchForShare(
       lightshow,
     };
   }
-  return source.type === 'replay'
-    ? { replayUrl: source.replayUrl, beat: sharedBeat, settings, lightshow }
-    : { scoreId: source.scoreId, beat: sharedBeat, settings, lightshow };
+  if (source.type === 'replay') return { replayUrl: source.replayUrl, beat: sharedBeat, settings, lightshow };
+  if (source.type === 'score') return { scoreId: source.scoreId, beat: sharedBeat, settings, lightshow };
+  return { scoreIdBL: source.scoreId, beat: sharedBeat, settings, lightshow };
 }

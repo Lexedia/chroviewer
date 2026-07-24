@@ -42,4 +42,4 @@ export interface ActiveSelection {
 
 export type ViewerPanel = 'share' | 'shortcuts' | 'speed' | 'lights' | 'camera' | 'volume' | null;
 
-export type ViewerSource = 'beatsaver' | 'link' | 'scoresaber';
+export type ViewerSource = 'beatleader' | 'beatsaver' | 'link' | 'scoresaber';

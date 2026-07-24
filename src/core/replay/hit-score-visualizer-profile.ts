@@ -3,6 +3,8 @@ import * as z from 'zod/mini';
 
 import type { HitScoreVisualizerConfig } from './hit-score-visualizer';
 
+import { getUtf8Length } from '@/lib/utf8';
+
 export const MAX_HSV_PROFILE_BYTES = 32 * 1024;
 
 const maxListItems = 32;
@@ -112,7 +114,7 @@ function validateList(values: readonly unknown[] | undefined, name: string) {
 }
 
 function validateText(value: string, name: string) {
-  return new TextEncoder().encode(value).length <= maxStringBytes
+  return getUtf8Length(value) <= maxStringBytes
     ? Result.ok(undefined)
     : Result.err(invalid(`${name} contains text longer than ${String(maxStringBytes)} bytes`));
 }
@@ -321,7 +323,7 @@ function readProfile(profile: Profile) {
 }
 
 export function parseHitScoreVisualizerProfile(text: string) {
-  if (new TextEncoder().encode(text).length > MAX_HSV_PROFILE_BYTES)
+  if (getUtf8Length(text) > MAX_HSV_PROFILE_BYTES)
     return Result.err(invalid(`profile is larger than ${String(MAX_HSV_PROFILE_BYTES / 1024)} KB`));
   const json = Result.try({
     try: (): unknown => JSON.parse(text),

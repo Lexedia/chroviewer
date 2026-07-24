@@ -20,12 +20,18 @@ export const env = createEnv({
   client: {
     VITE_BEATSAVER_API_URL: publicApiUrl.default('https://api.beatsaver.com'),
     VITE_SCORESABER_API_URL: publicApiUrl.default('https://scoresaber.com'),
+    VITE_BEATLEADER_API_URL: publicApiUrl.default('https://api.beatleader.com'),
     VITE_LUDUS_URL: publicApiUrl.default('https://ludus-1.scoresaber.com'),
+    VITE_SITE_NAME: z.string().default('ScoreSaber Watch'),
+    VITE_VIEWER_NAME: z.string().default('ChroViewer'),
   },
   runtimeEnvStrict: {
     VITE_BEATSAVER_API_URL: import.meta.env.VITE_BEATSAVER_API_URL,
     VITE_SCORESABER_API_URL: import.meta.env.VITE_SCORESABER_API_URL,
+    VITE_BEATLEADER_API_URL: import.meta.env.VITE_BEATLEADER_API_URL,
     VITE_LUDUS_URL: import.meta.env.VITE_LUDUS_URL,
+    VITE_SITE_NAME: import.meta.env.VITE_SITE_NAME,
+    VITE_VIEWER_NAME: import.meta.env.VITE_VIEWER_NAME,
   },
   emptyStringAsUndefined: true,
 });

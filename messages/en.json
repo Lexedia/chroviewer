@@ -242,14 +242,17 @@
     "waitingForHostStart": "Waiting for host to start map..."
   },
   "source": {
+    "beatleader": "BeatLeader",
+    "beatleaderInputLabel": "BeatLeader replay",
+    "beatleaderInputPlaceholder": "Score ID",
     "beatsaver": "BeatSaver",
     "beatsaverInputLabel": "BeatSaver map",
     "beatsaverInputPlaceholder": "Map key or URL",
-    "invalidScoreId": "Enter a ScoreSaber score ID",
+    "invalidScoreId": "Enter a ScoreSaber or BeatLeader score ID",
     "invalidLink": "Enter a valid HTTPS link",
     "link": "Link",
     "linkInputLabel": "Map or ScoreSaber replay link",
-    "linkInputPlaceholder": "Map ZIP or replay .dat URL",
+    "linkInputPlaceholder": "Map ZIP or replay .dat/.bsor URL",
     "loadGroup": "Load a map or replay",
     "loadLink": "Load link",
     "loadMap": "Load map",
@@ -298,6 +301,7 @@
       "mappedBy": "mapped by {mapper}",
       "openBeatSaver": "Open map on BeatSaver",
       "openScoreSaber": "Open leaderboard on ScoreSaber",
+      "openBeatLeader": "Open leaderboard on BeatLeader",
       "selectDifficulty": "Select difficulty"
     },
     "shortcuts": {

@@ -38,7 +38,15 @@ interface ViewerSessionOptions {
   settingsRef: RefObject<ViewerSettings>;
   sources: Pick<
     ViewerSources,
-    'audioDataRef' | 'pendingSharedViewRef' | 'replayRef' | 'rows' | 'scoreSaberLeaderboards' | 'songBpm'
+    | 'audioDataRef'
+    | 'pendingSharedViewRef'
+    | 'replayRef'
+    | 'rows'
+    | 'scoreSaberLeaderboards'
+    | 'beatLeaderLeaderboards'
+    | 'songBpm'
+    | 'mapIdentity'
+    | 'shareScoreIdBL'
   >;
   transport: Pick<SongTransport, 'clockRef' | 'load' | 'play' | 'seek' | 'setHitsoundEvents'>;
 }
@@ -417,18 +425,36 @@ export function useViewerSession({
       : selectedCharacteristic.startsWith('Solo')
         ? selectedCharacteristic
         : `Solo${selectedCharacteristic}`;
-  const scoreSaberLeaderboard =
-    selectedRow?.infoDifficulty === undefined || selectedGameMode === null
-      ? undefined
-      : sources.scoreSaberLeaderboards.find(
-          (leaderboard) =>
-            leaderboard.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
-            leaderboard.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
-        );
-  const scoreSaberUrl =
-    scoreSaberLeaderboard === undefined
-      ? null
-      : `https://scoresaber.com/leaderboard/${String(scoreSaberLeaderboard.id)}`;
+  const isBeatLeaderReplay =
+    sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
+  const leaderboardPlatform: 'scoresaber' | 'beatleader' = isBeatLeaderReplay ? 'beatleader' : 'scoresaber';
+  let leaderboardUrl: string | null = null;
+
+  if (leaderboardPlatform === 'scoresaber') {
+    const scoreSaberLeaderboard =
+      selectedRow?.infoDifficulty === undefined || selectedGameMode === null
+        ? undefined
+        : sources.scoreSaberLeaderboards.find(
+            (leaderboard) =>
+              leaderboard.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
+              leaderboard.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
+          );
+    if (scoreSaberLeaderboard !== undefined) {
+      leaderboardUrl = `https://scoresaber.com/leaderboard/${scoreSaberLeaderboard.id}`;
+    }
+  } else {
+    const beatLeaderLeaderboard =
+      selectedRow?.infoDifficulty === undefined || selectedGameMode === null
+        ? undefined
+        : sources.beatLeaderLeaderboards.find(
+            (leaderboard) =>
+              leaderboard.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
+              leaderboard.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
+          );
+    if (beatLeaderLeaderboard !== undefined) {
+      leaderboardUrl = `https://beatleader.com/leaderboard/global/${beatLeaderLeaderboard.id}`;
+    }
+  }
 
   return {
     canvasRef,
@@ -442,7 +468,8 @@ export function useViewerSession({
     cycleLights,
     difficultyOptions,
     environmentLoading,
-    scoreSaberUrl,
+    leaderboardUrl,
+    leaderboardPlatform,
     selectDifficulty,
     selectedDifficultyIndex,
     selectedKey,

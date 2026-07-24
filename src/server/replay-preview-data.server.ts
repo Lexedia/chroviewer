@@ -1,8 +1,9 @@
 import { z } from 'zod';
 
-import { env } from '../env';
 import { requestJson } from '../sources/http';
 import type { ScoreControllerGetScoreData } from '../sources/scoresaber/generated/api-contracts';
+
+import { env } from '@/env';
 
 export interface ReplayPreviewScore {
   leaderboard: {

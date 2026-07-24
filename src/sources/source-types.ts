@@ -25,6 +25,12 @@ export interface ScoreSaberLeaderboard {
   gameMode: string;
 }
 
+export interface BeatLeaderLeaderboard {
+  id: string;
+  difficulty: number;
+  gameMode: string;
+}
+
 export interface ScoreSaberReplayPlayer {
   id: string;
   name: string;
