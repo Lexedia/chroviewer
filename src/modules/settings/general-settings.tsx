@@ -129,79 +129,91 @@ export function GeneralSettings({ active, settings, isMapPreview, onChange }: Ge
             <>
               <SettingRow label={t('customGoodHitsound')} detail={t('customHitsoundHelp')}>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    className="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-48 text-sm file:mr-2 file:rounded-md file:border-0 file:px-2 file:py-1 file:text-xs file:font-medium"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        void saveCustomHitsound('good', file).then((result: Result<string, Error>) => {
-                          if (result.isOk()) {
-                            update('customGoodHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
-                          } else {
-                            console.error(result.error);
-                          }
-                        });
-                      }
-                    }}
-                  />
-                  {settings.customGoodHitsound && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => {
-                        void clearCustomHitsound('good').then((result: Result<void, Error>) => {
-                          if (result.isOk()) {
-                            update('customGoodHitsound', null);
-                          } else {
-                            console.error(result.error);
-                          }
-                        });
+                  {settings.customGoodHitsound ? (
+                    <>
+                      <span className="text-muted-foreground w-36 truncate text-sm">
+                        {settings.customGoodHitsound.split('?')[0]}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          void clearCustomHitsound('good').then((result: Result<void, Error>) => {
+                            if (result.isOk()) {
+                              update('customGoodHitsound', null);
+                            } else {
+                              console.error(result.error);
+                            }
+                          });
+                        }}
+                      >
+                        <Trash2 className="text-destructive h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-48 text-sm file:mr-2 file:rounded-md file:border-0 file:px-2 file:py-1 file:text-xs file:font-medium"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          void saveCustomHitsound('good', file).then((result: Result<string, Error>) => {
+                            if (result.isOk()) {
+                              update('customGoodHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
+                            } else {
+                              console.error(result.error);
+                            }
+                          });
+                        }
                       }}
-                    >
-                      <Trash2 className="text-destructive h-4 w-4" />
-                    </Button>
+                    />
                   )}
                 </div>
               </SettingRow>
               <SettingRow label={t('customBadHitsound')} detail={t('customHitsoundHelp')}>
                 <div className="flex items-center gap-2">
-                  <input
-                    type="file"
-                    accept="audio/*"
-                    className="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-48 text-sm file:mr-2 file:rounded-md file:border-0 file:px-2 file:py-1 file:text-xs file:font-medium"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        void saveCustomHitsound('bad', file).then((result: Result<string, Error>) => {
-                          if (result.isOk()) {
-                            update('customBadHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
-                          } else {
-                            console.error(result.error);
-                          }
-                        });
-                      }
-                    }}
-                  />
-                  {settings.customBadHitsound && (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => {
-                        void clearCustomHitsound('bad').then((result: Result<void, Error>) => {
-                          if (result.isOk()) {
-                            update('customBadHitsound', null);
-                          } else {
-                            console.error(result.error);
-                          }
-                        });
+                  {settings.customBadHitsound ? (
+                    <>
+                      <span className="text-muted-foreground w-36 truncate text-sm">
+                        {settings.customBadHitsound.split('?')[0]}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          void clearCustomHitsound('bad').then((result: Result<void, Error>) => {
+                            if (result.isOk()) {
+                              update('customBadHitsound', null);
+                            } else {
+                              console.error(result.error);
+                            }
+                          });
+                        }}
+                      >
+                        <Trash2 className="text-destructive h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="file:bg-primary/10 file:text-primary hover:file:bg-primary/20 w-48 text-sm file:mr-2 file:rounded-md file:border-0 file:px-2 file:py-1 file:text-xs file:font-medium"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          void saveCustomHitsound('bad', file).then((result: Result<string, Error>) => {
+                            if (result.isOk()) {
+                              update('customBadHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
+                            } else {
+                              console.error(result.error);
+                            }
+                          });
+                        }
                       }}
-                    >
-                      <Trash2 className="text-destructive h-4 w-4" />
-                    </Button>
+                    />
                   )}
                 </div>
               </SettingRow>
