@@ -17,10 +17,30 @@ interface LiveViewerPanelProps {
   chatOpen: boolean;
   live: LiveExperience;
   onChatOpenChange: (open: boolean) => void;
+  playerId: string;
 }
 
-export function LiveViewerPanel({ chatInputRef, chatOpen, live, onChatOpenChange }: LiveViewerPanelProps) {
+export function LiveViewerPanel({ chatInputRef, chatOpen, live, onChatOpenChange, playerId }: LiveViewerPanelProps) {
   const t = useTranslations('live');
+  const watchUrl =
+    window.location.hostname === 'chroviewer.com'
+      ? `https://watch.scoresaber.com/?${new URLSearchParams({ playerId }).toString()}`
+      : undefined;
+  const disabledPrompt =
+    watchUrl === undefined
+      ? undefined
+      : t.rich('chat.watch', {
+          scoresaber: (chunks) => (
+            <a
+              className="text-primary underline underline-offset-2"
+              href={watchUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {chunks}
+            </a>
+          ),
+        });
 
   function toggleChat() {
     const open = !chatOpen;
@@ -40,7 +60,13 @@ export function LiveViewerPanel({ chatInputRef, chatOpen, live, onChatOpenChange
         <div className="shrink-0">
           <LivePlayerCard live={live} />
         </div>
-        <LiveChat inputRef={chatInputRef} live={live} open={chatOpen} onToggle={toggleChat} />
+        <LiveChat
+          disabledPrompt={disabledPrompt}
+          inputRef={chatInputRef}
+          live={live}
+          open={chatOpen}
+          onToggle={toggleChat}
+        />
       </div>
 
       <Button

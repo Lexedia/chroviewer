@@ -146,7 +146,7 @@ export function ViewerShell() {
     sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
   const faviconPlatform = isBeatLeaderReplay
     ? 'beatleader'
-    : sources.shareScoreId !== null
+    : liveTarget !== null || sources.shareScoreId !== null
       ? 'scoresaber'
       : sources.mapIdentity !== null
         ? 'beatsaver'
@@ -604,6 +604,7 @@ export function ViewerShell() {
                 chatInputRef={liveChatInputRef}
                 chatOpen={liveChatOpen}
                 live={live}
+                playerId={liveTarget.playerId}
                 onChatOpenChange={(open) => {
                   setLiveChatOpen(open);
                   setSettings((current) => ({ ...current, liveChatCollapsed: !open }));
