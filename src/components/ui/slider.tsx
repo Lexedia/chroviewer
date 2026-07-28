@@ -1,4 +1,4 @@
-import { useRef, type ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 
 import { Slider as SliderPrimitive } from 'radix-ui';
 
@@ -9,71 +9,31 @@ import { cn } from '@/lib/utils';
 interface SliderProps extends ComponentProps<typeof SliderPrimitive.Root> {
   variant?: 'default' | 'transport' | 'notched';
   notchDivisor?: number;
-  explicitMin?: number;
-  snapDistance?: number;
-  value: number[];
-  onValueChange: (value: number[]) => void;
 }
 
 function Slider({
   className,
   value,
+  defaultValue,
   min = 0,
-  explicitMin = min,
   max = 100,
   step = 1,
   variant = 'default',
   orientation = 'horizontal',
   notchDivisor = 1,
-  onValueChange,
-  snapDistance = 0,
   ...props
 }: SliderProps) {
-  const mappedValue = value.map((v) => (v === explicitMin ? min : v));
-  const isKeyboard = useRef<boolean>(false);
-  const bigboys = [explicitMin, (min + max) / 2, max];
-
-  const handleValueChange = (newValues: number[]) => {
-    onValueChange(
-      newValues.map((v, i) => {
-        if (isKeyboard.current) {
-          const visual = mappedValue[i];
-          const actuall = value[i];
-
-          if (visual === undefined || actuall === undefined) return v;
-
-          const diff = v - visual;
-          if (diff === 0) return visual;
-          return actuall + diff;
-        }
-
-        if (variant !== 'notched') return v === min ? explicitMin : v;
-
-        return (
-          bigboys.find((m) => {
-            const targetMin = m === explicitMin ? min : m;
-            return Math.abs(v - targetMin) <= step * snapDistance;
-          }) ?? v
-        );
-      }),
-    );
-  };
+  const values = value ?? defaultValue ?? [min];
 
   return (
     <SliderPrimitive.Root
       data-slot="slider"
-      value={mappedValue}
+      value={value}
+      defaultValue={defaultValue}
       min={min}
       max={max}
       step={step}
       orientation={orientation}
-      onKeyDownCapture={() => {
-        isKeyboard.current = true;
-      }}
-      onKeyUpCapture={() => {
-        isKeyboard.current = false;
-      }}
-      onValueChange={handleValueChange}
       className={cn(
         'relative flex touch-none select-none items-center data-disabled:opacity-45 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:flex-col',
         variant === 'transport' && 'h-12 cursor-pointer',
@@ -98,14 +58,7 @@ function Slider({
                 : 'inset-x-2 top-1/2 -translate-y-1/2',
             )}
           >
-            <Notches
-              orientation={orientation}
-              min={min}
-              max={max}
-              step={step}
-              divisor={notchDivisor}
-              value={mappedValue}
-            />
+            <Notches orientation={orientation} min={min} max={max} step={step} divisor={notchDivisor} value={values} />
           </div>
         )}
 
@@ -117,7 +70,7 @@ function Slider({
           )}
         />
       </SliderPrimitive.Track>
-      {mappedValue.map((_, index) => (
+      {values.map((_, index) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}

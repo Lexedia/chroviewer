@@ -26,9 +26,21 @@ function Notches({ orientation, min = 0, max = 100, step = 1, divisor = 1, value
             style={orientation === 'horizontal' ? { left: `${percentage}%` } : { bottom: `${percentage}%` }}
             className={cn(
               'absolute rounded-full shrink-0 transition-all duration-100',
-              orientation === 'horizontal' ? 'top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5' : 'left-1/2 -translate-x-1/2 translate-y-1/2 h-0.5',
+              orientation === 'horizontal'
+                ? 'top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5'
+                : 'left-1/2 -translate-x-1/2 translate-y-1/2 h-0.5',
               isBigBoyNotch && isActive ? 'bg-white' : 'bg-muted-foreground/20 z-10',
-              orientation === 'horizontal' ? (isActive ? 'h-6' : isBigBoyNotch ? 'h-4 bg-muted-foreground/20 z-10' : 'h-2') : isActive ? 'w-6' : isBigBoyNotch ? 'w-4 bg-muted-foreground/20 z-10' : 'w-2',
+              orientation === 'horizontal'
+                ? isActive
+                  ? 'h-6'
+                  : isBigBoyNotch
+                    ? 'h-4 bg-muted-foreground/20 z-10'
+                    : 'h-2'
+                : isActive
+                  ? 'w-6'
+                  : isBigBoyNotch
+                    ? 'w-4 bg-muted-foreground/20 z-10'
+                    : 'w-2',
             )}
           />
         );

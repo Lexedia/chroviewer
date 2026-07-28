@@ -15,6 +15,7 @@ interface PlaybackSpeedMenuProps {
 export function PlaybackSpeedMenu({ open, playbackRate, onOpenChange, onPlaybackRateChange }: PlaybackSpeedMenuProps) {
   const format = useFormatter();
   const t = useTranslations('viewer.transport');
+  const sliderValue = playbackRate === 0.01 ? 0 : playbackRate;
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -40,14 +41,12 @@ export function PlaybackSpeedMenu({ open, playbackRate, onOpenChange, onPlayback
             variant="notched"
             orientation="horizontal"
             notchDivisor={5}
-            explicitMin={0.05}
             min={0}
             max={2}
             step={0.05}
-            snapDistance={3}
-            value={[playbackRate]}
+            value={[sliderValue]}
             onValueChange={([rate]) => {
-              onPlaybackRateChange(rate ?? 1);
+              onPlaybackRateChange(rate === 0 ? 0.01 : (rate ?? 1));
             }}
           />
         </div>
