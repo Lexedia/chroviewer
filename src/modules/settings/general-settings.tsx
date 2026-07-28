@@ -1,4 +1,3 @@
-import { Result } from 'better-result';
 import { Trash2 } from 'lucide-react';
 import { useFormatter, useTranslations } from 'use-intl';
 
@@ -139,7 +138,7 @@ export function GeneralSettings({ active, settings, isMapPreview, onChange }: Ge
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => {
-                          void clearCustomHitsound('good').then((result: Result<void, Error>) => {
+                          void clearCustomHitsound('good').then((result) => {
                             if (result.isOk()) {
                               update('customGoodHitsound', null);
                             } else {
@@ -159,9 +158,9 @@ export function GeneralSettings({ active, settings, isMapPreview, onChange }: Ge
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          void saveCustomHitsound('good', file).then((result: Result<string, Error>) => {
+                          void saveCustomHitsound('good', file).then((result) => {
                             if (result.isOk()) {
-                              update('customGoodHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
+                              update('customGoodHitsound', `${file.name}?${Date.now()}`);
                             } else {
                               console.error(result.error);
                             }
@@ -184,7 +183,7 @@ export function GeneralSettings({ active, settings, isMapPreview, onChange }: Ge
                         size="icon"
                         className="h-8 w-8"
                         onClick={() => {
-                          void clearCustomHitsound('bad').then((result: Result<void, Error>) => {
+                          void clearCustomHitsound('bad').then((result) => {
                             if (result.isOk()) {
                               update('customBadHitsound', null);
                             } else {
@@ -204,9 +203,9 @@ export function GeneralSettings({ active, settings, isMapPreview, onChange }: Ge
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          void saveCustomHitsound('bad', file).then((result: Result<string, Error>) => {
+                          void saveCustomHitsound('bad', file).then((result) => {
                             if (result.isOk()) {
-                              update('customBadHitsound', `${file.name}?${~~(Date.now() / 1000)}`);
+                              update('customBadHitsound', `${file.name}?${Date.now()}`);
                             } else {
                               console.error(result.error);
                             }

@@ -1,3 +1,5 @@
+import { Result } from 'better-result';
+
 import { songBpmTimeToSeconds } from '../beatmap/bpm';
 import type { ReplayNoteEventType } from '../replay/types';
 
@@ -77,47 +79,61 @@ export class HitsoundPlayer {
   private badCutBuffer: AudioBuffer | null = null;
   private customGoodCutArrayBuffer: ArrayBuffer | null = null;
   private customBadCutArrayBuffer: ArrayBuffer | null = null;
+  private bufferGeneration = 0;
 
   setVolume(volume: number) {
     this.volume = Math.min(Math.max(volume, 0), 1);
   }
 
   async setBuffers(goodBuffer: ArrayBuffer | null, badBuffer: ArrayBuffer | null) {
+    const generation = ++this.bufferGeneration;
     this.customGoodCutArrayBuffer = goodBuffer;
     this.customBadCutArrayBuffer = badBuffer;
-    if (this.context !== null) {
-      const [goodDecoded, badDecoded] = await Promise.all([
-        goodBuffer ? this.decodeBuffer(goodBuffer) : Promise.resolve(null),
-        badBuffer ? this.decodeBuffer(badBuffer) : Promise.resolve(null),
-      ]);
-      if (this.customGoodCutArrayBuffer === goodBuffer) this.goodCutBuffer = goodDecoded;
-      if (this.customBadCutArrayBuffer === badBuffer) this.badCutBuffer = badDecoded;
-    }
+    this.goodCutBuffer = null;
+    this.badCutBuffer = null;
+
+    const context = this.context;
+    if (context === null) return Result.ok(undefined);
+
+    const [goodDecoded, badDecoded] = await Promise.all([
+      goodBuffer === null ? Result.ok(null) : this.decodeBuffer(context, goodBuffer),
+      badBuffer === null ? Result.ok(null) : this.decodeBuffer(context, badBuffer),
+    ]);
+    if (generation !== this.bufferGeneration) return Result.ok(undefined);
+
+    if (goodDecoded.isOk()) this.goodCutBuffer = goodDecoded.value;
+    if (badDecoded.isOk()) this.badCutBuffer = badDecoded.value;
+    if (goodDecoded.isErr()) return Result.err(goodDecoded.error);
+    if (badDecoded.isErr()) return Result.err(badDecoded.error);
+    return Result.ok(undefined);
   }
 
-  private async decodeBuffer(arrayBuffer: ArrayBuffer): Promise<AudioBuffer | null> {
-    if (!this.context) return null;
-    try {
-      // we need a copy because decodeAudioData detaches the buffer
-      const buf = arrayBuffer.slice(0);
-      const decoded = await this.context.decodeAudioData(buf);
-      return trimLeadingSilence(decoded, this.context);
-    } catch (e) {
-      // technically should never happen, but idk, you never know these days
-      console.warn('Failed to decode hitsound buffer', e);
-      return null;
-    }
+  private decodeBuffer(context: AudioContext, arrayBuffer: ArrayBuffer) {
+    return Result.tryPromise({
+      try: async () => {
+        const decoded = await context.decodeAudioData(arrayBuffer.slice(0));
+        return trimLeadingSilence(decoded, context);
+      },
+      catch: (cause) => new Error('Hitsound audio could not be decoded', { cause }),
+    });
   }
 
   resume() {
     if (!this.context) {
-      this.context = new AudioContext();
-      if (this.customGoodCutArrayBuffer)
-        void this.decodeBuffer(this.customGoodCutArrayBuffer).then((b) => (this.goodCutBuffer = b));
-      if (this.customBadCutArrayBuffer)
-        void this.decodeBuffer(this.customBadCutArrayBuffer).then((b) => (this.badCutBuffer = b));
+      const created = Result.try(() => new AudioContext());
+      if (created.isErr()) {
+        console.warn('Hitsound audio could not start', created.error);
+        return;
+      }
+      this.context = created.value;
+      void this.setBuffers(this.customGoodCutArrayBuffer, this.customBadCutArrayBuffer).then((result) => {
+        if (result.isErr()) console.warn(result.error);
+      });
     }
-    void this.context.resume();
+    const context = this.context;
+    void Result.tryPromise(() => context.resume()).then((result) => {
+      if (result.isErr()) console.warn('Hitsound audio could not resume', result.error);
+    });
   }
 
   play(good: boolean, delay = 0) {
@@ -171,8 +187,14 @@ export class HitsoundPlayer {
   }
 
   dispose() {
+    this.bufferGeneration++;
     this.stop();
-    if (this.context !== null) void this.context.close();
+    const context = this.context;
+    if (context !== null) {
+      void Result.tryPromise(() => context.close()).then((result) => {
+        if (result.isErr()) console.warn('Hitsound audio could not close', result.error);
+      });
+    }
     this.context = null;
     this.goodCutBuffer = null;
     this.badCutBuffer = null;

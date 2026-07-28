@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react';
 
+import { Result } from 'better-result';
+
 import { firstHitsoundAfter, HitsoundPlayer, type HitsoundEvent } from '../../core/clock/hitsounds';
 import type { SongClock } from '../../core/clock/song-clock';
 import { loadCustomHitsound } from '../../core/hitsound-storage';
@@ -37,36 +39,62 @@ export function useHitsoundPlayback({
   }, [player, volume]);
 
   useEffect(() => {
-    let cancelled = false;
+    const controller = new AbortController();
+    void player.setBuffers(null, null);
 
-    async function updateBuffers() {
-      if (hitsoundPreset === 'default') {
-        await player.setBuffers(null, null);
-        return;
-      }
-
-      let goodCutBuffer: ArrayBuffer | null = null;
-      let badCutBuffer: ArrayBuffer | null = null;
+    void (async () => {
+      let goodBuffer: ArrayBuffer | null = null;
+      let badBuffer: ArrayBuffer | null = null;
 
       if (hitsoundPreset === 'custom') {
-        [goodCutBuffer, badCutBuffer] = await Promise.all([loadCustomHitsound('good'), loadCustomHitsound('bad')]);
-      } else {
-        try {
-          const res = await fetch(`/hitsounds/${hitsoundPreset}.wav`);
-          if (res.ok) goodCutBuffer = await res.arrayBuffer();
-        } catch (e) {
-          console.warn('Failed to load hitsound preset', e);
+        const [goodResult, badResult] = await Promise.all([
+          customGoodHitsound === null ? Result.ok(null) : loadCustomHitsound('good'),
+          customBadHitsound === null ? Result.ok(null) : loadCustomHitsound('bad'),
+        ]);
+        if (controller.signal.aborted) return;
+        if (goodResult.isErr()) {
+          console.warn(goodResult.error);
+          return;
         }
+        if (badResult.isErr()) {
+          console.warn(badResult.error);
+          return;
+        }
+        goodBuffer = goodResult.value;
+        badBuffer = badResult.value;
+      } else if (hitsoundPreset !== 'default') {
+        const response = await Result.tryPromise({
+          try: () => fetch(`${import.meta.env.BASE_URL}hitsounds/${hitsoundPreset}.wav`, { signal: controller.signal }),
+          catch: (cause) => new Error(`Hitsound preset ${hitsoundPreset} could not be loaded`, { cause }),
+        });
+        if (controller.signal.aborted) return;
+        if (response.isErr()) {
+          console.warn(response.error);
+          return;
+        }
+        if (!response.value.ok) {
+          console.warn(
+            new Error(`Hitsound preset ${hitsoundPreset} could not be loaded (${String(response.value.status)})`),
+          );
+          return;
+        }
+        const buffer = await Result.tryPromise({
+          try: () => response.value.arrayBuffer(),
+          catch: (cause) => new Error(`Hitsound preset ${hitsoundPreset} could not be read`, { cause }),
+        });
+        if (buffer.isErr()) {
+          console.warn(buffer.error);
+          return;
+        }
+        goodBuffer = buffer.value;
       }
 
-      if (!cancelled) {
-        await player.setBuffers(goodCutBuffer, badCutBuffer);
-      }
-    }
-
-    void updateBuffers();
+      if (controller.signal.aborted) return;
+      const updated = await player.setBuffers(goodBuffer, badBuffer);
+      if (updated.isErr()) console.warn(updated.error);
+    })();
     return () => {
-      cancelled = true;
+      controller.abort();
     };
   }, [player, hitsoundPreset, customGoodHitsound, customBadHitsound]);
 
