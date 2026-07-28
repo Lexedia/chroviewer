@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { ArrowRight, FolderOpen, Link as LinkIcon } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
-import type { MapLookup } from '../../../sources/source-types';
+import { isViewerSourceEnabled } from '../../../sources/source-config';
+import { configurableViewerSources, type MapLookup } from '../../../sources/source-types';
 import { isRemoteSourceUrl } from '../viewer-search';
 import type { ViewerSource } from '../viewer-types';
 
@@ -22,6 +23,8 @@ interface SourcePickerProps {
   onSubmit: (source: ViewerSource) => void;
 }
 
+const initialSource = configurableViewerSources.find(isViewerSourceEnabled) ?? 'link';
+
 export function SourcePicker({
   choices,
   input,
@@ -32,7 +35,7 @@ export function SourcePicker({
   onSubmit,
 }: SourcePickerProps) {
   const t = useTranslations('source');
-  const [source, setSource] = useState<ViewerSource>('beatsaver');
+  const [source, setSource] = useState<ViewerSource>(initialSource);
   const scoreSaber = source === 'scoresaber';
   const beatLeader = source === 'beatleader';
   const isScore = scoreSaber || beatLeader;
@@ -65,7 +68,7 @@ export function SourcePicker({
         >
           <h1 className="mb-4 text-center text-base font-semibold">ChroViewer</h1>
           <ToggleGroup
-            className="bg-muted/60 mb-3 grid grid-cols-4 rounded-lg border p-1"
+            className="bg-muted/60 mb-3 grid auto-cols-fr grid-flow-col rounded-lg border p-1"
             type="single"
             value={source}
             aria-label={t('sourceType')}
@@ -74,45 +77,51 @@ export function SourcePicker({
                 setSource(value);
             }}
           >
-            <ToggleGroupItem
-              className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
-              value="beatsaver"
-              aria-label={t('beatsaver')}
-            >
-              <img
-                className="size-4 sm:size-5"
-                src={`${import.meta.env.BASE_URL}beatsaver.svg`}
-                alt=""
-                aria-hidden="true"
-              />
-              {t('beatsaver')}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
-              value="scoresaber"
-              aria-label={t('scoresaber')}
-            >
-              <img
-                className="size-4 sm:size-5"
-                src={`${import.meta.env.BASE_URL}scoresaber.svg`}
-                alt=""
-                aria-hidden="true"
-              />
-              {t('scoresaber')}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
-              value="beatleader"
-              aria-label={t('beatleader')}
-            >
-              <img
-                className="size-4 sm:size-5"
-                src={`${import.meta.env.BASE_URL}beatleader.svg`}
-                alt=""
-                aria-hidden="true"
-              />
-              {t('beatleader')}
-            </ToggleGroupItem>
+            {isViewerSourceEnabled('beatsaver') && (
+              <ToggleGroupItem
+                className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
+                value="beatsaver"
+                aria-label={t('beatsaver')}
+              >
+                <img
+                  className="size-4 sm:size-5"
+                  src={`${import.meta.env.BASE_URL}beatsaver.svg`}
+                  alt=""
+                  aria-hidden="true"
+                />
+                {t('beatsaver')}
+              </ToggleGroupItem>
+            )}
+            {isViewerSourceEnabled('scoresaber') && (
+              <ToggleGroupItem
+                className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
+                value="scoresaber"
+                aria-label={t('scoresaber')}
+              >
+                <img
+                  className="size-4 sm:size-5"
+                  src={`${import.meta.env.BASE_URL}scoresaber.svg`}
+                  alt=""
+                  aria-hidden="true"
+                />
+                {t('scoresaber')}
+              </ToggleGroupItem>
+            )}
+            {isViewerSourceEnabled('beatleader') && (
+              <ToggleGroupItem
+                className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
+                value="beatleader"
+                aria-label={t('beatleader')}
+              >
+                <img
+                  className="size-4 sm:size-5"
+                  src={`${import.meta.env.BASE_URL}beatleader.svg`}
+                  alt=""
+                  aria-hidden="true"
+                />
+                {t('beatleader')}
+              </ToggleGroupItem>
+            )}
             <ToggleGroupItem
               className="data-[state=on]:bg-background data-[state=on]:text-foreground h-9 gap-1.5 px-2 text-sm data-[state=on]:shadow-sm sm:gap-2"
               value="link"

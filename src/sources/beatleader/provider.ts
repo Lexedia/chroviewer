@@ -4,13 +4,7 @@ import { z } from 'zod';
 import { env } from '../../env';
 import { requestArrayBuffer, requestJson } from '../http';
 import { SourceError } from '../source-error';
-import type {
-  DownloadProgressHandler,
-  FetchRequest,
-  ScoreSaberReplayPlayer,
-  ScoreSaberReplaySource,
-  SourceResult,
-} from '../source-types';
+import type { DownloadProgressHandler, FetchRequest, ScoreSaberReplayPlayer, SourceResult } from '../source-types';
 
 interface ResolveOptions {
   onProgress?: DownloadProgressHandler;
@@ -69,8 +63,6 @@ export function beatLeaderReference(input: string): BeatLeaderReference | null {
 
 function replayMetadata(score: ScoreContract, requestedScoreId: string) {
   const scoreId = String(score.id || requestedScoreId);
-  const gameMode = score.difficulty.modeName;
-  const characteristic = gameMode;
   if (!score.replay) {
     return Result.err(
       new SourceError({
@@ -85,7 +77,7 @@ function replayMetadata(score: ScoreContract, requestedScoreId: string) {
     scoreId,
     hash: score.song.hash,
     difficulty: score.difficulty.value,
-    characteristic,
+    characteristic: score.difficulty.modeName,
     playerId: player.id,
     player: {
       id: player.id,
@@ -119,34 +111,6 @@ export async function fetchBeatLeaderPlayer(
     operation: 'load-player',
   });
   return player.map((value) => replayPlayer(value, { id: playerId, name: 'Player', avatar: '', country: '' }));
-}
-
-export async function fetchBeatLeaderReplay(
-  scoreId: string,
-  options: ResolveOptions = {},
-): Promise<SourceResult<ScoreSaberReplaySource>> {
-  const metadataPromise = fetchBeatLeaderReplayMetadata(scoreId, options);
-  return Result.gen(async function* () {
-    const metadata = yield* Result.await(metadataPromise);
-    const [replay, player] = await Promise.all([
-      fetchBeatLeaderReplayFile(metadata.replayUrl, options),
-      requestJson(`${env.VITE_BEATLEADER_API_URL}/player/${metadata.playerId}`, playerSchema, {
-        ...options,
-        source: 'beatleader',
-        label: `BeatLeader player ${metadata.playerId}`,
-        operation: 'load-player',
-      }),
-    ]);
-    if (replay.isErr()) return replay;
-    return Result.ok({
-      scoreId: metadata.scoreId,
-      hash: metadata.hash,
-      difficulty: metadata.difficulty,
-      characteristic: metadata.characteristic,
-      player: player.isOk() ? replayPlayer(player.value, metadata.player) : metadata.player,
-      replay: replay.value,
-    });
-  });
 }
 
 export async function fetchBeatLeaderReplayMetadata(scoreId: string, options: ResolveOptions = {}) {

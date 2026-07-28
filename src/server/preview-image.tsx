@@ -7,7 +7,6 @@ import satori, { type SatoriOptions } from 'satori';
 
 import { fetchScoreSaberPlayer } from '../sources/scoresaber/provider';
 import type { ScoreSaberReplayPlayer } from '../sources/source-types';
-import { fetchBeatLeaderPreviewScore } from './beatleader-preview-data.server';
 import { MapPreviewCard } from './map-preview-card';
 import { fetchMapPreviewData } from './map-preview-data.server';
 import { PartyPreviewCard } from './party-preview-card';
@@ -639,23 +638,6 @@ function ReplayPreviewCard({
   );
 }
 
-function mapBeatLeaderDifficulty(difficultyName: string): number {
-  switch (difficultyName.toLowerCase()) {
-    case 'easy':
-      return 1;
-    case 'normal':
-      return 3;
-    case 'hard':
-      return 5;
-    case 'expert':
-      return 7;
-    case 'expertplus':
-      return 9;
-    default:
-      return 7;
-  }
-}
-
 export async function renderMapPreview(mapKey: string, origin: string): Promise<Result<ArrayBuffer, PreviewError>> {
   const cached = cacheGet(mapPreviewCache, mapKey);
   if (cached !== undefined) return Result.ok(cached);
@@ -900,123 +882,6 @@ export async function renderReplayPreview(scoreId: string, origin: string): Prom
       }),
     );
     cacheSet(replayPreviewCache, scoreId, rendered, previewCacheLimit, previewTtlMs);
-    return Result.ok(rendered);
-  });
-}
-
-export async function renderBeatLeaderReplayPreview(
-  scoreId: string,
-  origin: string,
-): Promise<Result<ArrayBuffer, PreviewError>> {
-  const cached = cacheGet(replayPreviewCache, `bl-${scoreId}`);
-  if (cached !== undefined) return Result.ok(cached);
-
-  const fontsPending = loadFonts(origin);
-  const result = await fetchBeatLeaderPreviewScore(scoreId);
-  if (result.isErr()) {
-    return Result.err(
-      new PreviewError({
-        message: result.error.message,
-        status: result.error.status === 404 ? 404 : 502,
-        cause: result.error,
-      }),
-    );
-  }
-  const blData = result.value;
-
-  const data: ReplayPreviewScore = {
-    leaderboard: {
-      difficulty: { difficulty: mapBeatLeaderDifficulty(blData.difficulty.difficultyName) },
-      map: {
-        coverUrl: blData.song.cover,
-        songName: blData.song.name,
-        songSubName: blData.song.subName,
-        songAuthorName: blData.song.author,
-        levelAuthorName: blData.song.mapper,
-      },
-      realm: { stars: blData.difficulty.status === 3 ? blData.difficulty.stars : 0 },
-    },
-    score: {
-      accuracy: blData.accuracy,
-      badCuts: blData.badCuts,
-      fullCombo: blData.fullCombo,
-      missedNotes: blData.missedNotes,
-      modifiedScore: blData.modifiedScore,
-      pp: blData.pp,
-      rank: blData.rank,
-      player: {
-        avatar: blData.player.avatar,
-        country: blData.player.country,
-        id: blData.player.id,
-        name: blData.player.name,
-      },
-    },
-  };
-
-  const playerInfo = {
-    id: blData.player.id,
-    name: blData.player.name,
-    avatar: blData.player.avatar,
-    country: blData.player.country,
-    rank: blData.player.rank > 0 ? blData.player.rank : undefined,
-    countryRank: blData.player.countryRank > 0 ? blData.player.countryRank : undefined,
-  };
-
-  const flagPath = flagFile(blData.player.country);
-  const [cover, avatar, flag, logo] = await Promise.all([
-    fetchImageDataUrl(blData.song.cover),
-    fetchImageDataUrl(blData.player.avatar),
-    flagPath === null ? Promise.resolve(null) : publicImageDataUrl(flagPath, 'image/png', origin),
-    publicImageDataUrl('beatleader.svg', 'image/svg+xml', origin),
-  ]);
-
-  return Result.gen(async function* () {
-    const fonts = yield* Result.await(
-      Result.tryPromise({
-        try: () => fontsPending,
-        catch: (cause) =>
-          new PreviewError({
-            message: 'preview fonts unavailable',
-            status: 500,
-            cause,
-          }),
-      }),
-    );
-    const rendered = yield* Result.await(
-      Result.tryPromise({
-        try: async () => {
-          const background =
-            cover === null
-              ? `data:image/svg+xml;base64,${Buffer.from('<svg width="600" height="315" xmlns="http://www.w3.org/2000/svg"><rect width="600" height="315" fill="#05060a"/></svg>').toString('base64')}`
-              : blurredBackground(blData.song.cover, cover);
-          const images: PreviewImages = {
-            background,
-            cover,
-            avatar,
-            flag,
-            logo,
-          };
-          const svg = await satori(
-            <ReplayPreviewCard
-              titleText="BeatLeader Replay"
-              accentColor="#d41f88"
-              data={data}
-              player={playerInfo}
-              images={images}
-            />,
-            { ...previewSize, fonts, loadAdditionalAsset: loadFallbackAsset },
-          );
-          return Uint8Array.from(new Resvg(svg, { font: { loadSystemFonts: false } }).render().asPng()).buffer;
-        },
-        catch: (cause) =>
-          new PreviewError({
-            message: 'preview rendering failed',
-            status: 500,
-            cause,
-          }),
-      }),
-    );
-    cacheSet(replayPreviewCache, `bl-${scoreId}`, rendered, previewCacheLimit, previewTtlMs);
     return Result.ok(rendered);
   });
 }

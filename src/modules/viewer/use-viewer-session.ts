@@ -45,7 +45,6 @@ interface ViewerSessionOptions {
     | 'scoreSaberLeaderboards'
     | 'beatLeaderLeaderboards'
     | 'songBpm'
-    | 'mapIdentity'
     | 'shareScoreIdBL'
   >;
   transport: Pick<SongTransport, 'clockRef' | 'load' | 'play' | 'seek' | 'setHitsoundEvents'>;
@@ -428,33 +427,20 @@ export function useViewerSession({
   const isBeatLeaderReplay =
     sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
   const leaderboardPlatform: 'scoresaber' | 'beatleader' = isBeatLeaderReplay ? 'beatleader' : 'scoresaber';
-  let leaderboardUrl: string | null = null;
-
-  if (leaderboardPlatform === 'scoresaber') {
-    const scoreSaberLeaderboard =
-      selectedRow?.infoDifficulty === undefined || selectedGameMode === null
-        ? undefined
-        : sources.scoreSaberLeaderboards.find(
-            (leaderboard) =>
-              leaderboard.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
-              leaderboard.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
-          );
-    if (scoreSaberLeaderboard !== undefined) {
-      leaderboardUrl = `https://scoresaber.com/leaderboard/${scoreSaberLeaderboard.id}`;
-    }
-  } else {
-    const beatLeaderLeaderboard =
-      selectedRow?.infoDifficulty === undefined || selectedGameMode === null
-        ? undefined
-        : sources.beatLeaderLeaderboards.find(
-            (leaderboard) =>
-              leaderboard.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
-              leaderboard.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
-          );
-    if (beatLeaderLeaderboard !== undefined) {
-      leaderboardUrl = `https://beatleader.com/leaderboard/global/${beatLeaderLeaderboard.id}`;
-    }
-  }
+  const leaderboard =
+    selectedRow?.infoDifficulty === undefined || selectedGameMode === null
+      ? undefined
+      : (isBeatLeaderReplay ? sources.beatLeaderLeaderboards : sources.scoreSaberLeaderboards).find(
+          (candidate) =>
+            candidate.difficulty === difficultyRank(selectedRow.infoDifficulty?.difficulty ?? '') &&
+            candidate.gameMode.toLowerCase() === selectedGameMode.toLowerCase(),
+        );
+  const leaderboardUrl =
+    leaderboard === undefined
+      ? null
+      : isBeatLeaderReplay
+        ? `https://beatleader.com/leaderboard/global/${leaderboard.id}`
+        : `https://scoresaber.com/leaderboard/${leaderboard.id}`;
 
   return {
     canvasRef,

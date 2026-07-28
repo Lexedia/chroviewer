@@ -1,3 +1,4 @@
+import { replayCutScore, replayNoteMaximumScore } from './scoring';
 import type {
   Replay,
   ReplayHeightEvent,
@@ -18,7 +19,7 @@ import type {
 export const BEATLEADER_REPLAY_MAGIC = 0x442d3d69;
 
 const maxListItems = 2_000_000;
-const decoder = new TextDecoder();
+const decoder = new TextDecoder('utf-8', { fatal: true });
 
 class BinaryReader {
   private readonly view: DataView;
@@ -88,11 +89,9 @@ class BinaryReader {
     return count;
   }
 
-  raw(length: number) {
+  skip(length: number) {
     this.require(length);
-    const value = this.bytes.slice(this.offset, this.offset + length);
     this.offset += length;
-    return value;
   }
 }
 
@@ -108,34 +107,6 @@ function vector3(reader: BinaryReader): ReplayVector3 {
 
 function quaternion(reader: BinaryReader): ReplayQuaternion {
   return { ...vector3(reader), w: reader.float32() };
-}
-
-const scoreDefinitions: Record<
-  number,
-  { center: number; beforeMin: number; beforeMax: number; afterMin: number; afterMax: number; fixed: number }
-> = {
-  3: { center: 15, beforeMin: 0, beforeMax: 70, afterMin: 0, afterMax: 30, fixed: 0 },
-  4: { center: 15, beforeMin: 0, beforeMax: 70, afterMin: 30, afterMax: 30, fixed: 0 },
-  5: { center: 15, beforeMin: 70, beforeMax: 70, afterMin: 0, afterMax: 30, fixed: 0 },
-  6: { center: 15, beforeMin: 0, beforeMax: 70, afterMin: 0, afterMax: 0, fixed: 0 },
-  7: { center: 0, beforeMin: 0, beforeMax: 0, afterMin: 0, afterMax: 0, fixed: 20 },
-  8: { center: 15, beforeMin: 70, beforeMax: 70, afterMin: 30, afterMax: 30, fixed: 0 },
-  9: { center: 15, beforeMin: 70, beforeMax: 70, afterMin: 30, afterMax: 30, fixed: 0 },
-  10: { center: 0, beforeMin: 0, beforeMax: 0, afterMin: 0, afterMax: 0, fixed: 20 },
-  11: { center: 15, beforeMin: 0, beforeMax: 70, afterMin: 30, afterMax: 30, fixed: 0 },
-  12: { center: 15, beforeMin: 70, beforeMax: 70, afterMin: 30, afterMax: 30, fixed: 0 },
-};
-
-function clamp(value: number, minimum: number, maximum: number) {
-  return Math.max(minimum, Math.min(maximum, value));
-}
-
-function roundToEven(value: number) {
-  const lower = Math.floor(value);
-  const fraction = value - lower;
-  if (fraction < 0.5) return lower;
-  if (fraction > 0.5) return lower + 1;
-  return lower % 2 === 0 ? lower : lower + 1;
 }
 
 const legacyDifficultyRanks: Record<string, number> = {
@@ -229,15 +200,20 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
         const noteCount = reader.count('notes');
         for (let i = 0; i < noteCount; i++) {
           const rawNoteId = reader.int32();
-          const scoringType = Math.floor(rawNoteId / 10000) - 2;
-          const lineIndex = Math.floor((rawNoteId % 10000) / 1000);
-          const noteLineLayer = Math.floor((rawNoteId % 1000) / 100);
+          const scoringTypeDivisor = rawNoteId < 100_000 ? 10_000 : 10_000_000;
+          const lineIndexDivisor = scoringTypeDivisor / 10;
+          const lineLayerDivisor = lineIndexDivisor / 10;
+          const rawScoringType = Math.floor(rawNoteId / scoringTypeDivisor);
+          const lineIndex = Math.floor((rawNoteId % scoringTypeDivisor) / lineIndexDivisor);
+          const noteLineLayer = Math.floor((rawNoteId % lineIndexDivisor) / lineLayerDivisor);
           const colorType = Math.floor((rawNoteId % 100) / 10);
           const cutDirection = rawNoteId % 10;
 
           const eventTime = reader.float32();
           const spawnTime = reader.float32();
           const eventTypeRaw = reader.int32();
+          const scoringType =
+            eventTypeRaw !== 3 && (rawScoringType < 3 || rawScoringType > 12) ? 1 : rawScoringType - 2;
 
           let eventType: ReplayNoteEventType;
           switch (eventTypeRaw) {
@@ -385,9 +361,11 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
         break;
       }
       case 7: {
-        const userDataLength = reader.int32();
-        const remaining = data.byteLength - reader.offset;
-        reader.offset += Math.min(userDataLength, remaining);
+        const customDataCount = reader.count('custom data');
+        for (let i = 0; i < customDataCount; i++) {
+          reader.string();
+          reader.skip(reader.int32());
+        }
         break;
       }
       default:
@@ -425,11 +403,17 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
   for (const event of simulationEvents) {
     if (event.type === 'wall') {
       currentEnergy = event.data.energy;
+      currentCombo = 0;
+      if (multiplier > 1) multiplier /= 2;
+      progress = 0;
+      combos.push({ time: event.time, combo: currentCombo });
       energies.push({ time: event.time, energy: currentEnergy });
+      multipliers.push({ time: event.time, multiplier, nextMultiplierProgress: 0 });
       continue;
     }
 
     const note = event.data;
+    const chainLink = note.noteId.scoringType === 5 || note.noteId.scoringType === 8;
 
     if (note.eventType === 1) {
       currentCombo++;
@@ -444,24 +428,10 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
         maxPossibleMultiplier *= 2;
         maxPossibleProgress = 0;
       }
-      immediateMax += 115 * maxPossibleMultiplier;
+      immediateMax += replayNoteMaximumScore(note) * maxPossibleMultiplier;
 
-      const definition = scoreDefinitions[(note.noteId.scoringType ?? 1) + 2];
-      if (definition) {
-        const before = clamp(
-          roundToEven(definition.beforeMax * note.beforeCutRating),
-          definition.beforeMin,
-          definition.beforeMax,
-        );
-        const after = clamp(
-          roundToEven(definition.afterMax * note.afterCutRating),
-          definition.afterMin,
-          definition.afterMax,
-        );
-        const accuracy = roundToEven(definition.center * (1 - clamp(note.cutDistanceToCenter / 0.3, 0, 1)));
-        const cutScore = before + after + accuracy + definition.fixed;
-        currentScore += cutScore * multiplier;
-      }
+      const cutScore = replayCutScore(note);
+      if (cutScore !== undefined) currentScore += cutScore.total * multiplier;
     } else if (note.eventType === 2 || note.eventType === 3) {
       currentCombo = 0;
       if (multiplier > 1) {
@@ -474,8 +444,8 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
         maxPossibleMultiplier *= 2;
         maxPossibleProgress = 0;
       }
-      immediateMax += 115 * maxPossibleMultiplier;
-      currentEnergy = Math.max(0, currentEnergy - 0.15);
+      immediateMax += replayNoteMaximumScore(note) * maxPossibleMultiplier;
+      currentEnergy = Math.max(0, currentEnergy - (chainLink ? (note.eventType === 2 ? 0.025 : 0.03) : 0.15));
     } else if (note.eventType === 4) {
       currentCombo = 0;
       if (multiplier > 1) {
@@ -486,7 +456,7 @@ export function parseBeatLeaderReplay(data: Uint8Array): Replay {
     }
 
     if (note.eventType === 1) {
-      currentEnergy = Math.min(1, currentEnergy + 0.01);
+      currentEnergy = Math.min(1, currentEnergy + (chainLink ? 0.002 : 0.01));
     }
 
     scores.push({ time: note.time, score: currentScore, immediateMaxPossibleScore: immediateMax });

@@ -27,6 +27,7 @@ import {
   lookupScoreSaber,
   scoreSaberReference,
 } from '../../sources/scoresaber/provider';
+import { isViewerSourceEnabled } from '../../sources/source-config';
 import { SourceError } from '../../sources/source-error';
 import type {
   BeatLeaderLeaderboard,
@@ -94,6 +95,16 @@ export function useViewerRemoteSource({
   const [sourceInput, setSourceInput] = useState('');
   const [sourceDownload, setSourceDownload] = useState<SourceDownload | null>(null);
 
+  function disabledSource(source: 'beatleader' | 'beatsaver' | 'scoresaber') {
+    return Result.err(
+      new SourceError({
+        message: t('errors.sourceDisabled'),
+        source,
+        operation: 'validate-source-enabled',
+      }),
+    );
+  }
+
   function downloadOptions(kind: SourceDownload['kind'], requestId: number) {
     if (isSourceRequestCurrent(requestId)) setSourceDownload({ kind, progress: null });
     return {
@@ -104,6 +115,7 @@ export function useViewerRemoteSource({
   }
 
   async function loadLookupSource(requestId: number, lookup: MapLookup) {
+    if (!isViewerSourceEnabled('beatsaver')) return disabledSource('beatsaver');
     return Result.gen(async function* () {
       const source = yield* Result.await(fetchBeatSaverHash(lookup.hash, downloadOptions('beatsaver', requestId)));
       if (!isSourceRequestCurrent(requestId)) return Result.ok(undefined);
@@ -120,6 +132,7 @@ export function useViewerRemoteSource({
     scoreId: string,
     pending: { beat?: number; autoplay?: boolean } = {},
   ) {
+    if (!isViewerSourceEnabled('scoresaber')) return disabledSource('scoresaber');
     return Result.gen(async function* () {
       const metadataPromise = fetchScoreSaberReplayMetadata(scoreId, downloadOptions('scoresaber', requestId));
       const initialReplayPromise = fetchScoreSaberReplayFile(scoreId, downloadOptions('scoresaber', requestId));
@@ -179,6 +192,7 @@ export function useViewerRemoteSource({
     scoreId: string,
     pending: { beat?: number; autoplay?: boolean } = {},
   ) {
+    if (!isViewerSourceEnabled('beatleader')) return disabledSource('beatleader');
     return Result.gen(async function* () {
       const metadataPromise = fetchBeatLeaderReplayMetadata(scoreId, downloadOptions('beatleader', requestId));
       const source = yield* Result.await(metadataPromise);
@@ -199,7 +213,7 @@ export function useViewerRemoteSource({
       if (replayHash?.toLowerCase() !== source.hash.toLowerCase()) {
         return Result.err(
           new SourceError({
-            message: t('errors.replayMapMismatch'),
+            message: t('errors.beatleaderReplayMapMismatch'),
             source: 'beatleader',
             operation: 'validate-replay-map',
           }),
@@ -289,6 +303,7 @@ export function useViewerRemoteSource({
   }
 
   async function loadSharedMap(requestId: number, mapSource: string) {
+    if (!isViewerSourceEnabled('beatsaver')) return disabledSource('beatsaver');
     if (isRemoteSourceUrl(mapSource)) return loadMapUrl(requestId, mapSource);
     return Result.gen(async function* () {
       const source = yield* Result.await(fetchBeatSaverMap(mapSource, downloadOptions('beatsaver', requestId)));
@@ -341,6 +356,7 @@ export function useViewerRemoteSource({
   }
 
   async function loadSourceInput(requestId: number, input: string, sourceType: ViewerSource) {
+    if (sourceType !== 'link' && !isViewerSourceEnabled(sourceType)) return disabledSource(sourceType);
     return Result.gen(async function* () {
       if (sourceType === 'link') {
         yield* Result.await(loadLink(requestId, input));
@@ -365,7 +381,7 @@ export function useViewerRemoteSource({
         if (!/^\d+$/.test(scoreId)) {
           return Result.err(
             new SourceError({
-              message: sourceT('invalidScoreId'),
+              message: sourceT('invalidBeatLeaderScoreId'),
               source: 'beatleader',
               operation: 'parse-score-id',
             }),
@@ -374,7 +390,7 @@ export function useViewerRemoteSource({
         yield* Result.await(loadBeatLeaderScore(requestId, scoreId));
         return Result.ok(undefined);
       }
-      const scoreSaber = scoreSaberReference(input);
+      const scoreSaber = isViewerSourceEnabled('scoresaber') ? scoreSaberReference(input) : null;
       if (scoreSaber?.kind === 'score') {
         yield* Result.await(loadScoreSaberScore(requestId, scoreSaber.id));
         return Result.ok(undefined);
@@ -389,7 +405,7 @@ export function useViewerRemoteSource({
         yield* Result.await(loadLookupSource(requestId, choices[0]));
         return Result.ok(undefined);
       }
-      const beatLeader = beatLeaderReference(input);
+      const beatLeader = isViewerSourceEnabled('beatleader') ? beatLeaderReference(input) : null;
       if (beatLeader?.kind === 'score') {
         yield* Result.await(loadBeatLeaderScore(requestId, beatLeader.id));
         return Result.ok(undefined);
@@ -453,7 +469,7 @@ export function useViewerRemoteSource({
   const { data: scoreSaberLeaderboards = [] } = useQuery({
     queryKey: ['scoresaber', 'leaderboards', mapHash],
     queryFn:
-      mapHash === undefined
+      mapHash === undefined || !isViewerSourceEnabled('scoresaber')
         ? skipToken
         : async ({ signal }): Promise<ScoreSaberLeaderboard[]> => {
             const result = await fetchScoreSaberLeaderboards(mapHash, { signal });
@@ -465,7 +481,7 @@ export function useViewerRemoteSource({
   const { data: beatLeaderLeaderboards = [] } = useQuery({
     queryKey: ['beatleader', 'leaderboards', mapHash],
     queryFn:
-      mapHash === undefined
+      mapHash === undefined || !isViewerSourceEnabled('beatleader')
         ? skipToken
         : async ({ signal }): Promise<BeatLeaderLeaderboard[]> => {
             const result = await fetchBeatLeaderLeaderboards(mapHash, { signal });

@@ -119,7 +119,8 @@ export function ViewerShell() {
   const session = useViewerSession({
     lightshowMode,
     lightshowModeRef,
-    skipInitialMenuEnvironment: search.map !== undefined || search.scoreId !== undefined,
+    skipInitialMenuEnvironment:
+      search.map !== undefined || search.scoreId !== undefined || search.scoreIdBL !== undefined,
     setActivePanel,
     setError,
     setLightshowMode,
@@ -143,14 +144,14 @@ export function ViewerShell() {
         };
   const isBeatLeaderReplay =
     sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
-  const themeColorPlatform = isBeatLeaderReplay
+  const faviconPlatform = isBeatLeaderReplay
     ? 'beatleader'
     : sources.shareScoreId !== null
       ? 'scoresaber'
       : sources.mapIdentity !== null
         ? 'beatsaver'
         : 'default';
-  useFavicon(themeColorPlatform);
+  useFavicon(faviconPlatform);
   const liveActive = liveTarget !== null;
   const remoteActive = liveActive || partyActive;
   const live = useLiveExperience({

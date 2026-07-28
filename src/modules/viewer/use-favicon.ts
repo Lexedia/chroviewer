@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-const platformFavicons: Record<string, string | null> = {
+const platformFavicons = {
   scoresaber: '/scoresaber.svg',
   beatleader: '/beatleader.svg',
   beatsaver: '/beatsaver.svg',
@@ -32,7 +32,7 @@ function restoreDefaultFavicons() {
 export function useFavicon(platform: Platform) {
   useEffect(() => {
     const faviconSvg = platformFavicons[platform];
-    if (faviconSvg) {
+    if (faviconSvg !== null) {
       for (const rel of ['icon', 'apple-touch-icon']) {
         setFavicon(faviconSvg, rel);
       }

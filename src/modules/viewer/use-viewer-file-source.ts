@@ -8,6 +8,7 @@ import { isBeatLeaderReplay } from '../../core/replay/parse-beatleader';
 import { applyLegacyScoreSaberMetadata, isScoreSaberReplay } from '../../core/replay/parse-scoresaber';
 import { replayMapHash, type Replay } from '../../core/replay/types';
 import { extractMapArchive } from '../../sources/archive';
+import { isViewerSourceEnabled } from '../../sources/source-config';
 import { SourceError, sourceError } from '../../sources/source-error';
 import type {
   BeatSaverMapSource,
@@ -109,6 +110,19 @@ export function useViewerFileSource({
   }
 
   async function parseReplay(data: ArrayBuffer, source: SourceError['source'] = 'local') {
+    const bytes = new Uint8Array(data);
+    if (
+      (isBeatLeaderReplay(bytes) && !isViewerSourceEnabled('beatleader')) ||
+      (isScoreSaberReplay(bytes) && !isViewerSourceEnabled('scoresaber'))
+    ) {
+      return Result.err(
+        new SourceError({
+          message: t('errors.sourceDisabled'),
+          source,
+          operation: 'validate-replay-source',
+        }),
+      );
+    }
     parserRef.current ??= new BeatmapParser();
     const parser = parserRef.current;
     return Result.tryPromise({
@@ -130,7 +144,13 @@ export function useViewerFileSource({
   ) {
     if (!isSourceRequestCurrent(requestId)) return Result.ok<DifficultyRow[]>([]);
     const source =
-      context.scoreId !== undefined ? 'scoresaber' : context.identity === undefined ? 'local' : 'beatsaver';
+      context.scoreId !== undefined
+        ? 'scoresaber'
+        : context.scoreIdBL !== undefined
+          ? 'beatleader'
+          : context.identity === undefined
+            ? 'local'
+            : 'beatsaver';
     setError('');
     replayRef.current = replay;
     setShareScoreId(context.scoreId ?? null);
