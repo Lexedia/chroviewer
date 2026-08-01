@@ -13,6 +13,10 @@ const requestOrigin = createIsomorphicFn()
   .server(() => getRequestUrl().origin)
   .client(() => window.location.origin);
 
+// head() blocks route rendering on both server and client; a hung metadata
+// request must never hold the page hostage
+const headMetadataTimeoutMs = 6_000;
+
 export const Route = createFileRoute('/')({
   ssr: false,
   validateSearch: viewerSearchSchema,
@@ -20,7 +24,11 @@ export const Route = createFileRoute('/')({
     const partyPlayerId = match.search.party;
     if (partyPlayerId !== undefined) {
       const metadataResult = await Result.tryPromise({
-        try: () => getPartyPreviewMetadata({ data: { playerId: partyPlayerId } }),
+        try: () =>
+          getPartyPreviewMetadata({
+            data: { playerId: partyPlayerId },
+            signal: AbortSignal.timeout(headMetadataTimeoutMs),
+          }),
         catch: (cause) => cause,
       });
       const metadata = metadataResult.isOk()
@@ -60,7 +68,7 @@ export const Route = createFileRoute('/')({
     const scoreId = match.search.scoreId;
     if (scoreId !== undefined && isViewerSourceEnabled('scoresaber')) {
       const titleResult = await Result.tryPromise({
-        try: () => getReplayPreviewTitle({ data: { scoreId } }),
+        try: () => getReplayPreviewTitle({ data: { scoreId }, signal: AbortSignal.timeout(headMetadataTimeoutMs) }),
         catch: (cause) => cause,
       });
       const title = titleResult.isOk() ? titleResult.value : 'ScoreSaber Replay';
@@ -91,7 +99,7 @@ export const Route = createFileRoute('/')({
     const mapKey = match.search.map?.match(/^[0-9a-f]{1,16}$/i)?.[0].toLowerCase();
     if (mapKey !== undefined && isViewerSourceEnabled('beatsaver')) {
       const metadataResult = await Result.tryPromise({
-        try: () => getMapPreviewMetadata({ data: { mapKey } }),
+        try: () => getMapPreviewMetadata({ data: { mapKey }, signal: AbortSignal.timeout(headMetadataTimeoutMs) }),
         catch: (cause) => cause,
       });
       const metadata = metadataResult.isOk()

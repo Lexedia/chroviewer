@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createRouter, defaultParseSearch } from '@tanstack/react-router';
+import { LoaderCircle } from 'lucide-react';
 
 import { createQueryClient } from './app/query-client';
 import { routeTree } from './routeTree.gen';
@@ -85,12 +86,21 @@ function appendSearchValue(searchParams: URLSearchParams, key: string, value: Ro
   searchParams.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
 }
 
+function PendingFallback() {
+  return (
+    <main className="flex h-dvh items-center justify-center bg-black text-white">
+      <LoaderCircle className="size-11 animate-spin" strokeWidth={1.75} aria-label="Loading" />
+    </main>
+  );
+}
+
 export function getRouter() {
   const queryClient = createQueryClient();
 
   return createRouter({
     routeTree,
     context: { queryClient },
+    defaultPendingComponent: PendingFallback,
     defaultPreload: 'intent',
     defaultPreloadDelay: 30,
     defaultViewTransition: false,
