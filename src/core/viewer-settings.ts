@@ -77,6 +77,7 @@ export interface ViewerSettings {
   audioOffsetMs: number;
   showBookmarks: boolean;
   reverseTimelineScroll: boolean;
+  showHeadset: boolean;
   replayCamera: 'static' | 'follow' | 'first-person';
   replayCameraSmoothing: boolean;
   replayCameraSmoothingSpeed: number;
@@ -102,6 +103,7 @@ export const MAX_AUDIO_OFFSET_MS = 1000;
 
 export type ReplayCameraSettings = Pick<
   ViewerSettings,
+  | 'showHeadset'
   | 'replayCamera'
   | 'replayCameraSmoothing'
   | 'replayCameraSmoothingSpeed'
@@ -167,6 +169,7 @@ export type ReplaySaberSettings = Pick<
 >;
 
 export const DEFAULT_REPLAY_CAMERA_SETTINGS: ReplayCameraSettings = {
+  showHeadset: true,
   replayCamera: 'first-person',
   replayCameraSmoothing: true,
   replayCameraSmoothingSpeed: 4,
@@ -386,6 +389,7 @@ const viewerSettingsObjectSchema = z.object({
   audioOffsetMs: integerSetting(DEFAULT_VIEWER_SETTINGS.audioOffsetMs, MIN_AUDIO_OFFSET_MS, MAX_AUDIO_OFFSET_MS),
   showBookmarks: z.catch(z.boolean(), DEFAULT_VIEWER_SETTINGS.showBookmarks),
   reverseTimelineScroll: z.catch(z.boolean(), DEFAULT_VIEWER_SETTINGS.reverseTimelineScroll),
+  showHeadset: z.catch(z.boolean(), DEFAULT_VIEWER_SETTINGS.showHeadset),
   replayCamera: z.catch(z.enum(['static', 'follow', 'first-person']), DEFAULT_VIEWER_SETTINGS.replayCamera),
   replayCameraSmoothing: z.catch(z.boolean(), DEFAULT_VIEWER_SETTINGS.replayCameraSmoothing),
   replayCameraSmoothingSpeed: numberSetting(DEFAULT_VIEWER_SETTINGS.replayCameraSmoothingSpeed, 1, 20),

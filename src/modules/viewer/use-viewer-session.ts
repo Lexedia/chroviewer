@@ -115,6 +115,7 @@ export function useViewerSession({
   useEffect(() => {
     viewerRef.current?.view.setReplayCameraSettings(settings);
   }, [
+    settings.showHeadset,
     settings.replayCamera,
     settings.replayCameraSmoothing,
     settings.replayCameraSmoothingSpeed,

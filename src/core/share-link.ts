@@ -77,6 +77,7 @@ export function settingsForShareCategories(
   }
   if (categories.includes('camera')) {
     Object.assign(shared, {
+      showHeadset: settings.showHeadset,
       replayCamera: settings.replayCamera,
       replayCameraSmoothing: settings.replayCameraSmoothing,
       replayCameraSmoothingSpeed: settings.replayCameraSmoothingSpeed,

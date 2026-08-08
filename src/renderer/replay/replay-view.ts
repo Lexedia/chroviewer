@@ -8,6 +8,7 @@ import type { HitScoreVisualizerConfig } from '../../core/replay/hit-score-visua
 import { sampleReplayFrames } from '../../core/replay/sampling';
 import type { Replay, ReplayTransform } from '../../core/replay/types';
 import {
+  DEFAULT_REPLAY_CAMERA_SETTINGS,
   DEFAULT_REPLAY_SABER_SETTINGS,
   type ReplayCameraSettings,
   type ReplaySaberSettings,
@@ -78,6 +79,7 @@ export class ReplayView {
   private readonly replaySaberColorMaterials: { blade: ShaderMaterial; core: ShaderMaterial }[] = [];
   private replayTrailTime = Number.NEGATIVE_INFINITY;
   private localSpaceSaberTrail = false;
+  private showHeadset = DEFAULT_REPLAY_CAMERA_SETTINGS.showHeadset;
   private saberSettings = DEFAULT_REPLAY_SABER_SETTINGS;
   private replay: Replay | null = null;
   private hasSampledReplayPose = false;
@@ -218,7 +220,7 @@ export class ReplayView {
       this.clearTrails();
     }
     this.cameraController.setForced(forced, this.hasReplay);
-    this.replayHeadset.root.visible = this.cameraController.cameraMode !== 'first-person';
+    this.updateHeadsetVisibility();
   }
 
   setReplay(replay: Replay | null, hitScoreVisualizer?: HitScoreVisualizerConfig | null) {
@@ -231,7 +233,7 @@ export class ReplayView {
     this.root.visible = !isForcedLightshowMode(this.lightshowMode) && this.hasPoses;
     this.applySaberOffsets();
     this.cameraController.setReplayPresence(this.hasReplay);
-    this.replayHeadset.root.visible = this.cameraController.cameraMode !== 'first-person';
+    this.updateHeadsetVisibility();
   }
 
   setHitScoreVisualizer(hitScoreVisualizer: HitScoreVisualizerConfig | null) {
@@ -244,7 +246,7 @@ export class ReplayView {
 
   setCameraMode(mode: ReplayCameraMode) {
     this.cameraController.setMode(mode);
-    this.replayHeadset.root.visible = mode !== 'first-person';
+    this.updateHeadsetVisibility();
   }
 
   refreshTimeline() {
@@ -257,8 +259,13 @@ export class ReplayView {
   }
 
   setCameraSettings(settings: ReplayCameraSettings) {
+    this.showHeadset = settings.showHeadset;
     this.cameraController.setSettings(settings, isForcedLightshowMode(this.lightshowMode), this.hasReplay);
-    this.replayHeadset.root.visible = this.cameraController.cameraMode !== 'first-person';
+    this.updateHeadsetVisibility();
+  }
+
+  private updateHeadsetVisibility() {
+    this.replayHeadset.root.visible = this.showHeadset && this.cameraController.cameraMode !== 'first-person';
   }
 
   setSaberSettings(settings: ReplaySaberSettings) {
