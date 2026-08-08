@@ -1,5 +1,6 @@
 *
 !bun.lock
+!assets/logo.svg
 !messages/**
 !package.json
 !public/**
