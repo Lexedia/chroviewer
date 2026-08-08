@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { ArrowRight, FolderOpen, Link as LinkIcon } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
+import logoUrl from '../../../../assets/logo.svg?url';
 import { isViewerSourceEnabled } from '../../../sources/source-config';
 import { configurableViewerSources, type MapLookup } from '../../../sources/source-types';
 import { isRemoteSourceUrl } from '../viewer-search';
@@ -66,7 +67,10 @@ export function SourcePicker({
           role="group"
           aria-label={t('loadGroup')}
         >
-          <h1 className="mb-4 text-center text-base font-semibold">ChroViewer</h1>
+          <h1 className="font-pixel mb-4 flex flex-col items-center justify-center gap-1 text-center text-xl font-medium tracking-widest [-webkit-text-stroke:0.8px_currentColor]">
+            <img className="size-20" src={logoUrl} alt="" aria-hidden="true" />
+            ChroViewer
+          </h1>
           <ToggleGroup
             className="bg-muted/60 mb-3 grid auto-cols-fr grid-flow-col rounded-lg border p-1"
             type="single"
@@ -89,7 +93,7 @@ export function SourcePicker({
                   alt=""
                   aria-hidden="true"
                 />
-                {t('beatsaver')}
+                <span className="hidden sm:inline">{t('beatsaver')}</span>
               </ToggleGroupItem>
             )}
             {isViewerSourceEnabled('scoresaber') && (
@@ -104,7 +108,7 @@ export function SourcePicker({
                   alt=""
                   aria-hidden="true"
                 />
-                {t('scoresaber')}
+                <span className="hidden sm:inline">{t('scoresaber')}</span>
               </ToggleGroupItem>
             )}
             {isViewerSourceEnabled('beatleader') && (
@@ -119,7 +123,7 @@ export function SourcePicker({
                   alt=""
                   aria-hidden="true"
                 />
-                {t('beatleader')}
+                <span className="hidden sm:inline">{t('beatleader')}</span>
               </ToggleGroupItem>
             )}
             <ToggleGroupItem
@@ -128,7 +132,7 @@ export function SourcePicker({
               aria-label={t('link')}
             >
               <LinkIcon className="size-4 sm:size-5" />
-              {t('link')}
+              <span className="hidden sm:inline">{t('link')}</span>
             </ToggleGroupItem>
           </ToggleGroup>
           <form

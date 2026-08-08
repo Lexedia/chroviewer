@@ -39,7 +39,6 @@ import { ViewerActions } from './components/viewer-actions';
 import { ViewerOverlay } from './components/viewer-overlay';
 import { buildTimelineMarkers } from './timeline-markers';
 import { TransportControls } from './transport/transport-controls';
-import { useFavicon } from './use-favicon';
 import { useSongTransport } from './use-song-transport';
 import { useViewerControls } from './use-viewer-controls';
 import { useViewerSession } from './use-viewer-session';
@@ -142,16 +141,6 @@ export function ViewerShell() {
           watcherPlayerId: search.watcherPlayerId,
           authToken: search.authToken,
         };
-  const isBeatLeaderReplay =
-    sources.shareScoreIdBL !== null || sources.replayRef.current?.metadata.version.includes('BeatLeader') === true;
-  const faviconPlatform = isBeatLeaderReplay
-    ? 'beatleader'
-    : liveTarget !== null || sources.shareScoreId !== null
-      ? 'scoresaber'
-      : sources.mapIdentity !== null
-        ? 'beatsaver'
-        : 'default';
-  useFavicon(faviconPlatform);
   const liveActive = liveTarget !== null;
   const remoteActive = liveActive || partyActive;
   const live = useLiveExperience({
