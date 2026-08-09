@@ -27,7 +27,7 @@ interface AboutDialogProps {
 
 const contributors = [
   { name: 'Caeden117', href: 'https://github.com/Caeden117', avatarUrl: caedenAvatarUrl, fallback: 'C' },
-  { name: 'Swifter1243', href: 'https://github.com/Swifter1243', avatarUrl: swifterAvatarUrl, fallback: 'S' },
+  { name: 'Swifter', href: 'https://github.com/Swifter1243', avatarUrl: swifterAvatarUrl, fallback: 'S' },
   { name: 'Reaxt', href: 'https://github.com/Reaxt', avatarUrl: reaxtAvatarUrl, fallback: 'R' },
   { name: 'Mawntee', href: 'https://github.com/mawntee', avatarUrl: mawnteeAvatarUrl, fallback: 'M' },
   { name: 'Lexedia', href: 'https://github.com/Lexedia', avatarUrl: lexediaAvatarUrl, fallback: 'L' },
