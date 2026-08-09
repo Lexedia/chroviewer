@@ -244,6 +244,10 @@ export class ReplayView {
     this.cameraController.setMapHasNotes(hasMapNotes);
   }
 
+  setPreviewCameraDistanceOverride(distance: number | null) {
+    this.cameraController.setPreviewCameraDistanceOverride(distance);
+  }
+
   setCameraMode(mode: ReplayCameraMode) {
     this.cameraController.setMode(mode);
     this.updateHeadsetVisibility();

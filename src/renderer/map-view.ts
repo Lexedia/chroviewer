@@ -17,7 +17,7 @@ import {
   type ReplaySaberSettings,
 } from '../core/viewer-settings';
 import { BloomfogPipeline } from './bloomfog/pipeline';
-import { fixedCameraPosition, GAMEPLAY_CAMERA_FAR } from './camera';
+import { fixedCameraPosition, GAMEPLAY_CAMERA_FAR, MAIN_MENU_CAMERA_DISTANCE } from './camera';
 import {
   EnvironmentLoadAborted,
   environmentLoadFailure,
@@ -233,6 +233,7 @@ export class MapView implements RenderView {
     const startedAt = performance.now();
     this.menuLightshowSeed = seed;
     this.beatSource = () => (performance.now() - startedAt) / 500;
+    this.replayView.setPreviewCameraDistanceOverride(MAIN_MENU_CAMERA_DISTANCE);
     this.environmentLights.setMenuLightshow(seed);
   }
 
@@ -311,6 +312,7 @@ export class MapView implements RenderView {
   }
 
   setMap(data: MapRenderData, override?: InfoColorScheme) {
+    this.replayView.setPreviewCameraDistanceOverride(null);
     this.clearMap();
     this.data = data;
     this.replayView.setMapHasNotes(data.notes.length > 0);
