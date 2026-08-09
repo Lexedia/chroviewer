@@ -84,6 +84,7 @@ export class MapView implements RenderView {
   private lightshowMode: LightshowMode = 'full';
   private colors: ColorScheme = DEFAULT_COLORS;
   private songDuration = 0;
+  private menuLightshowSeed: number | null = null;
 
   private data: MapRenderData | null = null;
   private beatSource: () => number = () => 0;
@@ -228,6 +229,13 @@ export class MapView implements RenderView {
     this.beatSource = source;
   }
 
+  startMenuLightshow(seed: number) {
+    const startedAt = performance.now();
+    this.menuLightshowSeed = seed;
+    this.beatSource = () => (performance.now() - startedAt) / 500;
+    this.environmentLights.setMenuLightshow(seed);
+  }
+
   setLightshowMode(mode: LightshowMode) {
     this.lightshowMode = mode;
     this.environmentLights.setLightshowMode(mode);
@@ -241,6 +249,7 @@ export class MapView implements RenderView {
     this.clearMap();
     this.setSongDuration(null);
     this.setReplay(null);
+    if (this.menuLightshowSeed !== null) this.startMenuLightshow(this.menuLightshowSeed);
   }
 
   setReplay(replay: Replay | null, hitScoreVisualizer?: HitScoreVisualizerConfig | null) {

@@ -72,7 +72,11 @@ export function useViewerRenderer({
       };
       const view = new MapView({ mirrorQuality: settings.graphicsQuality }, finishInitialEnvironmentLoad);
       lifecycle.setView(view);
-      view.setLightshowMode(active === null ? 'static' : lightshowModeRef.current);
+      if (active === null && !skipInitialMenuEnvironment) {
+        view.startMenuLightshow(Math.floor(Math.random() * 0x1_0000_0000));
+      } else {
+        view.setLightshowMode(active === null ? 'static' : lightshowModeRef.current);
+      }
       view.setReplayCameraSettings(settings);
       view.setReplaySaberSettings(settingsRef.current);
       view.setScreenDisplacementEffects(settingsRef.current.screenDisplacementEffects);

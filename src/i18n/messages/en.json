@@ -1,5 +1,6 @@
 {
   "common": {
+    "about": "About ChroViewer",
     "back": "Back",
     "camera": "Camera",
     "clear": "Clear",
@@ -10,7 +11,6 @@
     "follow": "Follow",
     "general": "General",
     "graphics": "Graphics",
-    "keyboardShortcuts": "Keyboard shortcuts",
     "live": "Live",
     "off": "Off",
     "pause": "Pause",
@@ -201,7 +201,7 @@
     "reset": "Reset",
     "resetAll": "Reset all",
     "resetSetting": "Reset {setting}",
-    "title": "Viewer settings"
+    "title": "ChroViewer Settings"
   },
   "share": {
     "categoriesLabel": "Settings included in share link",
@@ -251,6 +251,7 @@
     "waitingForHostStart": "Waiting for host to start map..."
   },
   "source": {
+    "about": "About",
     "beatleader": "BeatLeader",
     "beatleaderInputLabel": "BeatLeader replay",
     "beatleaderInputPlaceholder": "Score ID",
@@ -316,21 +317,41 @@
       "openBeatLeader": "Open leaderboard on BeatLeader",
       "selectDifficulty": "Select difficulty"
     },
-    "shortcuts": {
-      "attribution": "<chroViewer>ChroViewer</chroViewer> is based on <chroMapper>ChroMapper's previewer</chroMapper>",
+    "about": {
       "actions": {
         "fullscreen": "Fullscreen",
-        "hideControls": "Hide / show controls",
-        "openShortcuts": "Keyboard shortcuts",
+        "hideControls": "Controls",
+        "openAbout": "About",
         "playPause": "Play / pause",
-        "seek": "Seek by beat fraction",
-        "toggleHitsounds": "Toggle hitsounds"
+        "seek": "Seek",
+        "toggleHitsounds": "Hitsounds"
       },
+      "attributions": {
+        "chroMapper": "ChroViewer is based on <chroMapper>ChroMapper's previewer</chroMapper>",
+        "title": "Attributions",
+        "viewAll": "Asset credits"
+      },
+      "contributors": "Contributors",
+      "keyboardShortcuts": "Keyboard shortcuts",
       "keys": {
-        "leftRight": "Left / right",
+        "leftRight": "← / →",
         "space": "Space"
       },
-      "title": "Keyboard shortcuts"
+      "keysLabel": "Keys",
+      "license": "GPLv2",
+      "people": "People",
+      "roles": {
+        "contributor": "Contributor",
+        "leadDeveloper": "Lead developer"
+      },
+      "source": "View source",
+      "support": {
+        "chroMapper": "ChroMapper creator",
+        "chroViewer": "ChroViewer maintainers",
+        "title": "Support"
+      },
+      "tagline": "A browser-native Beat Saber map and replay viewer",
+      "title": "About ChroViewer"
     },
     "transport": {
       "audioVolumes": "Audio volumes",

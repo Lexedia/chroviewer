@@ -362,6 +362,8 @@ export function ViewerShell() {
             : !partyIsHost && party.mapReady && party.serverState?.mapRevealed !== true
               ? { icon: UsersRound, iconClassName: '', label: partyT('waitingForHostStart') }
               : null;
+  const sourcePickerVisible =
+    sources.mapMeta === null && !remoteActive && !sources.sourceLoading && !session.environmentLoading;
   const playbackOverlay = remoteActive
     ? null
     : sources.sourceLoading
@@ -428,7 +430,8 @@ export function ViewerShell() {
         <canvas
           ref={session.canvasRef}
           className={cn(
-            'absolute inset-0 size-full',
+            'absolute inset-0 size-full transition-[filter,transform] duration-500',
+            sourcePickerVisible && 'scale-[1.01] blur-[3px]',
             partyActive && !partyIsHost && !(party.mapReady && party.serverState?.mapRevealed === true) && 'invisible',
           )}
           onPointerDown={() => {
@@ -519,9 +522,12 @@ export function ViewerShell() {
       <SourcePicker
         choices={sources.sourceChoices}
         input={sources.sourceInput}
-        visible={sources.mapMeta === null && !remoteActive && !sources.sourceLoading && !session.environmentLoading}
+        visible={sourcePickerVisible}
         onChoose={(choice) => {
           sources.loadLookup(choice);
+        }}
+        onAboutClick={() => {
+          setActivePanel('about');
         }}
         onInputChange={sources.setSourceInput}
         onOpenFiles={() => {
@@ -632,6 +638,8 @@ export function ViewerShell() {
       )}
 
       <ViewerActions
+        aboutOpen={activePanel === 'about'}
+        aboutTriggerVisible={!sourcePickerVisible}
         chromeVisible={chromeVisible}
         hasMap={showMapCard}
         shareEnabled={!partyActive}
@@ -640,16 +648,15 @@ export function ViewerShell() {
         shareIncludeTimecode={share.includeTimecode}
         shareOpen={activePanel === 'share'}
         shareUrl={share.shareUrl}
-        shortcutsOpen={activePanel === 'shortcuts'}
+        onAboutOpenChange={(open) => {
+          setActivePanel(open ? 'about' : null);
+        }}
         onCopyShare={share.copyShareLink}
         onSettingsClick={toggleSettings}
         onShareCategoriesChange={share.setShareCategories}
         onShareIncludeTimecodeChange={share.setIncludeTimecode}
         onShareOpenChange={(open) => {
           setActivePanel(open ? 'share' : null);
-        }}
-        onShortcutsOpenChange={(open) => {
-          setActivePanel(open ? 'shortcuts' : null);
         }}
       />
 
