@@ -5,7 +5,7 @@ import type { ReactNode } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from '@tanstack/react-router';
 
-import logoUrl from '../../assets/logo.svg?url';
+import logoUrl from '../app/assets/logo.svg?url';
 import { defaultLocale } from '../i18n/config';
 import { AppIntlProvider } from '../i18n/provider';
 import type { RouterContext } from '../router';

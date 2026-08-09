@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo.svg" alt="ChroViewer logo" width="180">
+  <img src="src/app/assets/logo.svg" alt="ChroViewer logo" width="180">
 </p>
 
 <h1 align="center">ChroViewer</h1>

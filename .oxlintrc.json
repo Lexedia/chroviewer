@@ -2,10 +2,9 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc"],
   "ignorePatterns": [
-    "**/.*",
-    "dist/**",
     "node_modules/**",
     "src/routeTree.gen.ts",
+    "src/modules/live/generated/**",
     "src/sources/beatsaver/generated/**",
     "src/sources/scoresaber/generated/**"
   ],

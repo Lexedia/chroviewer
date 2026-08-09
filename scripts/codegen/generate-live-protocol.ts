@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dir, '../..');
-const protoRoot = join(root, 'proto');
+const protoRoot = join(root, 'src/modules/live/proto');
 const generatedRoot = join(root, 'src/modules/live/generated/proto');
 const buf = join(root, 'node_modules/.bin/buf');
 const oxfmt = join(root, 'node_modules/.bin/oxfmt');

@@ -1,6 +1,11 @@
 import { relative } from 'node:path';
 
-const generated = ['src/sources/beatsaver/generated/', 'src/sources/scoresaber/generated/'];
+const generated = [
+  'src/modules/live/generated/',
+  'src/routeTree.gen.ts',
+  'src/sources/beatsaver/generated/',
+  'src/sources/scoresaber/generated/',
+];
 
 function argumentsFor(files) {
   return files

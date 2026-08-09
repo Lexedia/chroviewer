@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { ArrowRight, FolderOpen, Link as LinkIcon } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
-import logoUrl from '../../../../assets/logo.svg?url';
 import { isViewerSourceEnabled } from '../../../sources/source-config';
 import { configurableViewerSources, type MapLookup } from '../../../sources/source-types';
 import { isRemoteSourceUrl } from '../viewer-search';
@@ -13,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { InputGroup, InputGroupButton, InputGroupInput } from '@/components/ui/input-group';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+import logoUrl from '@/app/assets/logo.svg?url';
 
 interface SourcePickerProps {
   choices: MapLookup[];

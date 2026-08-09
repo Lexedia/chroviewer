@@ -19,7 +19,7 @@ Do not use npm, pnpm or yarn in this repo
 - Use kebab-case for TypeScript filenames and directories
 - Use named exports
 - Omit explicit TypeScript return types when inference is clear
-- Put user facing text in `messages` and read it through the i18n helpers
+- Put user facing text in `src/i18n/messages` and read it through the i18n helpers
 
 ## Generated Files
 

@@ -1,10 +1,11 @@
 *
 !bun.lock
-!assets/logo.svg
-!messages/**
 !package.json
 !public/**
 !src/**
 !tsconfig.json
 !vite.config.ts
 !patches/**
+src/app/assets/*.ai
+src/modules/live/proto/**
+src/sources/*/openapi.json

@@ -33,11 +33,10 @@
   "sortTailwindcss": {},
   "sortPackageJson": false,
   "ignorePatterns": [
-    "**/.*",
-    "dist/**",
     "node_modules/**",
     "public/environments/**",
     "src/routeTree.gen.ts",
+    "src/modules/live/generated/**",
     "src/sources/beatsaver/generated/**",
     "src/sources/scoresaber/generated/**"
   ]

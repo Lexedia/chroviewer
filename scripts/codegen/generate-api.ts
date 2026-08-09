@@ -5,8 +5,7 @@ import { dirname, join, resolve } from 'node:path';
 import { z } from 'zod';
 
 const root = resolve(import.meta.dir, '../..');
-const openApiDirectory = join(root, 'openapi');
-const generatedRoot = join(root, 'src/sources');
+const sourcesRoot = join(root, 'src/sources');
 const generator = join(root, 'node_modules/.bin/swagger-typescript-api');
 
 const jsonValueSchema = z.json();
@@ -220,7 +219,7 @@ async function generateContract(target: ContractTarget, specPath: string, output
 }
 
 async function generatedContract(target: ContractTarget, refresh: boolean, outputDirectory: string) {
-  const specPath = join(openApiDirectory, `${target.name}.json`);
+  const specPath = join(sourcesRoot, target.name, 'openapi.json');
   if (refresh) await refreshDocument(target, specPath);
   else documentSchema.parse(JSON.parse(await readFile(specPath, 'utf8')));
   await generateContract(target, specPath, outputDirectory);
@@ -236,7 +235,7 @@ async function main() {
     for (const target of targets) {
       const temporaryDirectory = join(temporaryRoot, target.name);
       const generated = await generatedContract(target, refresh, temporaryDirectory);
-      const destination = join(generatedRoot, target.name, 'generated/api-contracts.ts');
+      const destination = join(sourcesRoot, target.name, 'generated/api-contracts.ts');
       const next = await readFile(generated, 'utf8');
       if (check) {
         const current = (await Bun.file(destination).exists()) ? await readFile(destination, 'utf8') : '';

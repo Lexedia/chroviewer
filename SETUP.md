@@ -10,7 +10,7 @@ If you haven't already, we strongly urge y'all to harden your shell environment 
 
 ### Package Manager
 
-Install Bun:
+Use the Bun version pinned by `packageManager` in `package.json`. Install Bun with:
 
 Linux and macOS:
 
@@ -26,13 +26,13 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 
 ### Runtime
 
-Use Node `24.x`
+Use the exact Node version in `.node-version`
 
 We recommend [nvm](https://github.com/nvm-sh/nvm#installing-and-updating). From the project root:
 
 ```sh
-nvm install
-nvm use
+nvm install "$(cat .node-version)"
+nvm use "$(cat .node-version)"
 ```
 
 ## Run ChroViewer
