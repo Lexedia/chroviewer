@@ -97,7 +97,7 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                 {t('people')}
               </h2>
 
-              <div className="flex items-center justify-between gap-5 px-1">
+              <div className="flex items-center justify-between gap-5 px-1 max-sm:flex-col max-sm:items-stretch max-sm:gap-4">
                 <a
                   className="focus-visible:ring-ring/40 flex min-w-0 items-center gap-3 rounded-md outline-none focus-visible:ring-3"
                   href="https://github.com/Umbranoxio"
@@ -115,8 +115,8 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                   <ExternalLink className="text-muted-foreground size-3.5 shrink-0 max-sm:hidden" aria-hidden="true" />
                 </a>
 
-                <div className="flex shrink-0 items-center gap-3">
-                  <span className="text-muted-foreground hidden text-[10px] font-medium tracking-widest uppercase sm:block">
+                <div className="flex shrink-0 items-center gap-3 max-sm:justify-between">
+                  <span className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
                     {t('contributors')}
                   </span>
                   <TooltipProvider delayDuration={100}>
@@ -140,7 +140,7 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                                 handleContributorClick(event, contributor.name);
                               }}
                             >
-                              <Avatar size="lg">
+                              <Avatar className="max-sm:size-8" size="lg">
                                 <AvatarImage src={contributor.avatarUrl} alt="" />
                                 <AvatarFallback>{contributor.fallback}</AvatarFallback>
                               </Avatar>
@@ -158,7 +158,7 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
             <Separator className="my-5" />
 
             <section
-              className="flex flex-wrap items-center gap-x-5 gap-y-3 px-1"
+              className="flex flex-wrap items-center gap-x-5 gap-y-3 px-1 max-sm:flex-col max-sm:items-stretch"
               aria-labelledby="about-support-heading"
             >
               <div className="flex items-center gap-2">
@@ -167,7 +167,7 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                   {t('support.title')}
                 </h2>
               </div>
-              <div className="flex flex-1 flex-wrap gap-x-5 gap-y-2 sm:justify-end">
+              <div className="flex flex-1 flex-wrap gap-x-5 gap-y-2 max-sm:pl-5 sm:justify-end">
                 <a
                   className="focus-visible:ring-ring/40 flex items-center gap-1.5 rounded-md text-xs font-medium outline-none focus-visible:ring-3"
                   href="https://www.patreon.com/scoresaber"
