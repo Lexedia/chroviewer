@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import blissAvatarUrl from '@/app/assets/contributors/bliss.jpg?url';
 import caedenAvatarUrl from '@/app/assets/contributors/caeden117.png?url';
 import lexediaAvatarUrl from '@/app/assets/contributors/lexedia.png?url';
+import lillieAvatarUrl from '@/app/assets/contributors/lillie.png?url';
 import mawnteeAvatarUrl from '@/app/assets/contributors/mawntee.jpg?url';
 import reaxtAvatarUrl from '@/app/assets/contributors/reaxt.png?url';
 import swifterAvatarUrl from '@/app/assets/contributors/swifter1243.png?url';
@@ -32,6 +33,7 @@ const contributors = [
   { name: 'Mawntee', href: 'https://github.com/mawntee', avatarUrl: mawnteeAvatarUrl, fallback: 'M' },
   { name: 'Lexedia', href: 'https://github.com/Lexedia', avatarUrl: lexediaAvatarUrl, fallback: 'L' },
   { name: 'Bliss', href: 'https://github.com/Bliss-tbh', avatarUrl: blissAvatarUrl, fallback: 'B' },
+  { name: 'Lillie', href: 'https://github.com/iLillie', avatarUrl: lillieAvatarUrl, fallback: 'L' },
 ];
 
 const externalLinkClass =
@@ -115,12 +117,12 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                   <ExternalLink className="text-muted-foreground size-3.5 shrink-0 max-sm:hidden" aria-hidden="true" />
                 </a>
 
-                <div className="flex shrink-0 items-center gap-3 max-sm:justify-between">
+                <div className="flex shrink-0 items-center gap-3 max-sm:justify-between max-sm:gap-2">
                   <span className="text-muted-foreground text-[10px] font-medium tracking-widest uppercase">
                     {t('contributors')}
                   </span>
                   <TooltipProvider delayDuration={100}>
-                    <AvatarGroup>
+                    <AvatarGroup className="max-sm:-space-x-2.5">
                       {contributors.map((contributor) => (
                         <Tooltip
                           open={openContributor === contributor.name}
@@ -140,7 +142,7 @@ export function AboutDialog({ open, showTrigger, onOpenChange }: AboutDialogProp
                                 handleContributorClick(event, contributor.name);
                               }}
                             >
-                              <Avatar className="max-sm:size-8" size="lg">
+                              <Avatar className="max-sm:size-7" size="lg">
                                 <AvatarImage src={contributor.avatarUrl} alt="" />
                                 <AvatarFallback>{contributor.fallback}</AvatarFallback>
                               </Avatar>
