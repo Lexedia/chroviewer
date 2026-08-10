@@ -157,6 +157,7 @@ export interface MapRenderOptions {
   initialPlayerHeight?: number;
   replayHeights?: ReplayHeightEvent[];
   environmentRemoval?: string[];
+  modifiers?: string[];
 }
 
 const anyCutDirection = 8;
@@ -257,7 +258,7 @@ export function buildMapRenderData(difficulty: Difficulty, options: MapRenderOpt
   );
   const majorVersion = heck.majorVersion;
   const leadInBeats = preJumpTravelBeats(options.songBpm);
-  const formedNotes = buildNoteFormation(difficulty, options.songBpm, heck);
+  const formedNotes = buildNoteFormation(difficulty, options.songBpm, options.modifiers ?? [], heck);
   const replayNotes = [...(options.replayNotes ?? [])];
   const initialPlayerHeight = options.initialPlayerHeight ?? defaultPlayerHeight;
   const replayHeights = [...(options.replayHeights ?? [])];

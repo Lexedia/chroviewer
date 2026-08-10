@@ -6,6 +6,7 @@ import { HeckPlacement } from './heck-placement';
 
 const rowTolerance = 0.001;
 const noCutDirection = 9;
+const anyCutDirection = 8;
 
 export interface NoteFormation {
   startLineIndex: number;
@@ -142,9 +143,23 @@ function applyWindowRotations(formedNotes: FormedNote[], majorVersion: number, h
   }
 }
 
-export function buildNoteFormation(difficulty: Difficulty, songBpm: number, heck = new HeckPlacement(difficulty)) {
+function withNoteModifiers(notes: Note[], modifiers: string[]) {
+  const noArrowModifier = modifiers.includes('NA');
+
+  return notes.map((note) => ({
+    ...note,
+    cutDirection: noArrowModifier ? anyCutDirection : note.cutDirection,
+  }));
+}
+
+export function buildNoteFormation(
+  difficulty: Difficulty,
+  songBpm: number,
+  modifiers: string[],
+  heck = new HeckPlacement(difficulty),
+) {
   const majorVersion = Number.parseInt(difficulty.version, 10);
-  const formedNotes: FormedNote[] = difficulty.notes.map((note) => ({
+  const formedNotes: FormedNote[] = withNoteModifiers(difficulty.notes, modifiers).map((note) => ({
     note,
     time: songBpmTimeToSeconds(note.songBpmTime, songBpm),
     formation: {
