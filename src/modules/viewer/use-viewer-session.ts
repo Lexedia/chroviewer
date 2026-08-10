@@ -260,7 +260,7 @@ export function useViewerSession({
       initialPlayerHeight: sources.replayRef.current?.metadata.initialHeight,
       replayHeights: sources.replayRef.current?.heights,
       environmentRemoval: row.infoDifficulty.environmentRemoval,
-      modifiers: sources.replayRef.current?.metadata.modifiers ?? [],
+      modifiers: sources.replayRef.current?.metadata.modifiers,
     });
     const environmentResult = await viewer.view.setEnvironment(environmentId, data.chromaEnvironment);
     if (environmentResult.isErr()) {
