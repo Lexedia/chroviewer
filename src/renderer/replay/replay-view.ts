@@ -80,6 +80,7 @@ export class ReplayView {
   private replayTrailTime = Number.NEGATIVE_INFINITY;
   private localSpaceSaberTrail = false;
   private showHeadset = DEFAULT_REPLAY_CAMERA_SETTINGS.showHeadset;
+  private orthographicOverlayRendering = false;
   private saberSettings = DEFAULT_REPLAY_SABER_SETTINGS;
   private replay: Replay | null = null;
   private hasSampledReplayPose = false;
@@ -269,7 +270,13 @@ export class ReplayView {
   }
 
   private updateHeadsetVisibility() {
-    this.replayHeadset.root.visible = this.showHeadset && this.cameraController.cameraMode !== 'first-person';
+    this.replayHeadset.root.visible =
+      this.showHeadset && (this.orthographicOverlayRendering || this.cameraController.cameraMode !== 'first-person');
+  }
+
+  setOrthographicOverlayRendering(rendering: boolean) {
+    this.orthographicOverlayRendering = rendering;
+    this.updateHeadsetVisibility();
   }
 
   setSaberSettings(settings: ReplaySaberSettings) {

@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'use-intl';
 
-import type { LightshowMode } from '../../core/lighting/basic-light';
+import { isForcedLightshowMode, type LightshowMode } from '../../core/lighting/basic-light';
 import { loadViewerSettings } from '../../core/viewer-settings';
 import { environmentCatalog } from '../../renderer/environment/environment-catalog';
 import { LudusPlayState } from '../live/generated/proto/scoresaber/live/v1/common_pb';
@@ -34,6 +34,7 @@ import {
   preserveLocalWatchPartyViewerSettings,
 } from '../watch-party/watch-party-viewer-settings';
 import { MapSummaryCard } from './components/map-summary-card';
+import { ReplayOrthoOverlay } from './components/replay-ortho-overlay';
 import { SourcePicker } from './components/source-picker';
 import { ViewerActions } from './components/viewer-actions';
 import { ViewerOverlay } from './components/viewer-overlay';
@@ -445,6 +446,20 @@ export function ViewerShell() {
         />
       </div>
 
+      {settings.orthoCameraEnabled &&
+        sources.replayRef.current !== null &&
+        session.selectedKey !== '' &&
+        !isForcedLightshowMode(lightshowMode) &&
+        (!partyActive || (party.mapReady && (partyIsHost || party.serverState?.mapRevealed === true))) && (
+          <ReplayOrthoOverlay
+            overlayRef={session.orthoOverlayRef}
+            view={settings.orthoCameraView}
+            onViewChange={(orthoCameraView) => {
+              setSettings((current) => ({ ...current, orthoCameraView }));
+            }}
+          />
+        )}
+
       {liveActive && liveInterruption !== null && (
         <ViewerOverlay
           backdropBlur={false}
@@ -686,6 +701,7 @@ export function ViewerShell() {
             lightshowMode={lightshowMode}
             lightshowReadOnly={partyActive && !partyIsHost}
             replayCamera={settings.replayCamera}
+            orthoCameraEnabled={settings.orthoCameraEnabled}
             hasReplay={sources.replayRef.current !== null}
             songMuted={settings.songMuted}
             masterMuted={settings.masterMuted}
@@ -716,6 +732,9 @@ export function ViewerShell() {
             onLightshowModeChange={session.changeLightshowMode}
             onReplayCameraChange={(replayCamera) => {
               setSettings({ ...settings, replayCamera });
+            }}
+            onOrthoCameraEnabledChange={(orthoCameraEnabled) => {
+              setSettings((current) => ({ ...current, orthoCameraEnabled }));
             }}
             onMasterVolumeChange={(masterVolume) => {
               if (settingsRef.current.masterVolume === 0 && masterVolume > 0) void transport.unlockAudio();

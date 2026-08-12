@@ -39,6 +39,7 @@ import {
 import { PostBloomPipeline } from './post-bloom/pipeline';
 import { DEFAULT_QUALITY } from './quality';
 import type { RenderView } from './renderer-lifecycle';
+import { ReplayOrthographicOverlay } from './replay/orthographic-overlay';
 import type { ReplayCameraMode } from './replay/replay-camera';
 import { ReplayView } from './replay/replay-view';
 
@@ -70,6 +71,7 @@ export class MapView implements RenderView {
   private readonly mirror: PlanarMirror;
   private readonly skybox: Mesh;
   private readonly replayView: ReplayView;
+  private readonly replayOrthographicOverlay = new ReplayOrthographicOverlay();
   private readonly mapObjects: MapObjectRenderer;
   private readonly environmentLights = new EnvironmentLightRuntime();
   private environment: LoadedEnvironment | null = null;
@@ -85,6 +87,8 @@ export class MapView implements RenderView {
   private colors: ColorScheme = DEFAULT_COLORS;
   private songDuration = 0;
   private menuLightshowSeed: number | null = null;
+  private orthoCameraEnabled = DEFAULT_REPLAY_CAMERA_SETTINGS.orthoCameraEnabled;
+  private screenDisplacementEffects = true;
 
   private data: MapRenderData | null = null;
   private beatSource: () => number = () => 0;
@@ -92,6 +96,7 @@ export class MapView implements RenderView {
   constructor(
     quality = DEFAULT_QUALITY,
     private readonly onEnvironmentLoadSettled: () => void = () => undefined,
+    private readonly orthoOverlayElement: () => HTMLElement | null = () => null,
   ) {
     this.pipeline = new BloomfogPipeline();
     this.postBloom = new PostBloomPipeline();
@@ -287,6 +292,8 @@ export class MapView implements RenderView {
   }
 
   setReplayCameraSettings(settings: ReplayCameraSettings) {
+    this.orthoCameraEnabled = settings.orthoCameraEnabled;
+    this.replayOrthographicOverlay.setView(settings.orthoCameraView);
     this.replayView.setCameraSettings(settings);
   }
 
@@ -295,6 +302,7 @@ export class MapView implements RenderView {
   }
 
   setScreenDisplacementEffects(enabled: boolean) {
+    this.screenDisplacementEffects = enabled;
     this.postBloom.setScreenDisplacementEnabled(enabled);
     this.mapObjects.setScreenDisplacementEffects(enabled);
   }
@@ -441,6 +449,46 @@ export class MapView implements RenderView {
     }
     this.pipeline.render(renderer, this.camera, this.environmentLights.lightSegments);
     this.postBloom.render(renderer, this.scene, this.camera, this.mapRoot.visible && this.mapObjects.wallsVisible);
+    if (this.orthoCameraEnabled && this.replayView.hasReplay && !isForcedLightshowMode(this.lightshowMode)) {
+      const element = this.orthoOverlayElement();
+      if (element !== null) this.renderOrthographicOverlay(renderer, element, now);
+    }
+  }
+
+  private renderOrthographicOverlay(renderer: WebGLRenderer, element: HTMLElement, beat: number) {
+    const environmentRoot = this.environment?.root;
+    const environmentVisible = environmentRoot?.visible ?? false;
+    const skyboxVisible = this.skybox.visible;
+    const mirrorVisible = this.mirror.mesh.visible;
+    const hudVisible = this.replayView.hudRoot.visible;
+    const fog = this.pipeline.fogUniforms;
+    const fogAttenuation = fog._CustomFogAttenuation.value;
+    const fogHeight = fog._CustomFogHeightFogHeight.value;
+    const fogStartY = fog._CustomFogHeightFogStartY.value;
+
+    try {
+      if (environmentRoot !== undefined) environmentRoot.visible = false;
+      this.skybox.visible = false;
+      this.mirror.mesh.visible = false;
+      this.replayView.hudRoot.visible = false;
+      this.replayView.setOrthographicOverlayRendering(true);
+      fog._CustomFogAttenuation.value = 0;
+      fog._CustomFogHeightFogHeight.value = 1;
+      fog._CustomFogHeightFogStartY.value = -1_000_000;
+      if (this.screenDisplacementEffects) this.mapObjects.setScreenDisplacementEffects(false);
+      this.replayOrthographicOverlay.setHalfJumpDistance(this.data?.movementStateAt?.(beat).halfJumpDistance);
+      this.replayOrthographicOverlay.render(renderer, this.scene, element);
+    } finally {
+      if (this.screenDisplacementEffects) this.mapObjects.setScreenDisplacementEffects(true);
+      fog._CustomFogAttenuation.value = fogAttenuation;
+      fog._CustomFogHeightFogHeight.value = fogHeight;
+      fog._CustomFogHeightFogStartY.value = fogStartY;
+      this.replayView.setOrthographicOverlayRendering(false);
+      this.replayView.hudRoot.visible = hudVisible;
+      this.mirror.mesh.visible = mirrorVisible;
+      this.skybox.visible = skyboxVisible;
+      if (environmentRoot !== undefined) environmentRoot.visible = environmentVisible;
+    }
   }
 
   contextRestored() {
@@ -461,6 +509,7 @@ export class MapView implements RenderView {
     }
     this.mapObjects.dispose();
     this.replayView.dispose();
+    this.replayOrthographicOverlay.dispose();
     for (const object of [this.skybox, this.mirror.mesh]) {
       if (!Array.isArray(object.material)) object.material.dispose();
     }

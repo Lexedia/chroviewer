@@ -78,6 +78,8 @@ export function settingsForShareCategories(
   if (categories.includes('camera')) {
     Object.assign(shared, {
       showHeadset: settings.showHeadset,
+      orthoCameraEnabled: settings.orthoCameraEnabled,
+      orthoCameraView: settings.orthoCameraView,
       replayCamera: settings.replayCamera,
       replayCameraSmoothing: settings.replayCameraSmoothing,
       replayCameraSmoothingSpeed: settings.replayCameraSmoothingSpeed,

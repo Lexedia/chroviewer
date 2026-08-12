@@ -69,7 +69,7 @@ export function useViewerSession({
   const selectionRequestRef = useRef(0);
   const selectionGenerationRef = useRef(0);
   const [selectedKey, setSelectedKey] = useState('');
-  const { canvasRef, environmentLoading, viewerReady, viewerRef } = useViewerRenderer({
+  const { canvasRef, environmentLoading, orthoOverlayRef, viewerReady, viewerRef } = useViewerRenderer({
     activeSelectionRef,
     clockRef: transport.clockRef,
     lightshowModeRef,
@@ -116,6 +116,8 @@ export function useViewerSession({
     viewerRef.current?.view.setReplayCameraSettings(settings);
   }, [
     settings.showHeadset,
+    settings.orthoCameraEnabled,
+    settings.orthoCameraView,
     settings.replayCamera,
     settings.replayCameraSmoothing,
     settings.replayCameraSmoothingSpeed,
@@ -453,6 +455,7 @@ export function useViewerSession({
     environmentLoading,
     leaderboardUrl,
     leaderboardPlatform,
+    orthoOverlayRef,
     selectDifficulty,
     selectedDifficultyIndex,
     selectedKey,
