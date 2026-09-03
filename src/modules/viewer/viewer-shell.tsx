@@ -1,6 +1,13 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 
-import { useRouter, useSearch } from '@tanstack/react-router';
+import { useRouter, useSearch } from "@tanstack/react-router";
 import {
   AlertCircle,
   Download,
@@ -12,64 +19,67 @@ import {
   UsersRound,
   Volume2,
   X,
-} from 'lucide-react';
-import { useTranslations } from 'use-intl';
+} from "lucide-react";
+import { useTranslations } from "use-intl";
 
-import { difficultyRank } from '../../core/beatmap/info';
-import { isForcedLightshowMode, type LightshowMode } from '../../core/lighting/basic-light';
-import { loadViewerSettings } from '../../core/viewer-settings';
-import { environmentCatalog } from '../../renderer/environment/environment-catalog';
-import { LudusPlayState } from '../live/generated/proto/scoresaber/live/v1/common_pb';
-import type { LiveTarget } from '../live/live-types';
-import { LiveViewerPanel } from '../live/live-viewer-panel';
-import { useLiveExperience } from '../live/use-live-experience';
-import { ReplayPlayerCard } from '../replay/replay-player-card';
-import { SettingsDrawer } from '../settings/settings-drawer';
-import { useWatchPartyExperience } from '../watch-party/use-watch-party-experience';
-import { WatchPartyControls } from '../watch-party/watch-party-controls';
-import { WatchPartyPanel } from '../watch-party/watch-party-panel';
+import { difficultyRank } from "../../core/beatmap/info";
+import { isForcedLightshowMode, type LightshowMode } from "../../core/lighting/basic-light";
+import { loadViewerSettings } from "../../core/viewer-settings";
+import { environmentCatalog } from "../../renderer/environment/environment-catalog";
+import { LudusPlayState } from "../live/generated/proto/scoresaber/live/v1/common_pb";
+import type { LiveTarget } from "../live/live-types";
+import { LiveViewerPanel } from "../live/live-viewer-panel";
+import { useLiveExperience } from "../live/use-live-experience";
+import { ReplayPlayerCard } from "../replay/replay-player-card";
+import { SettingsDrawer } from "../settings/settings-drawer";
+import { useWatchPartyExperience } from "../watch-party/use-watch-party-experience";
+import { WatchPartyControls } from "../watch-party/watch-party-controls";
+import { WatchPartyPanel } from "../watch-party/watch-party-panel";
 import {
   applyWatchPartyViewerSettings,
   encodeWatchPartyViewerSettings,
   parseWatchPartyViewerSettings,
   preserveLocalWatchPartyViewerSettings,
-} from '../watch-party/watch-party-viewer-settings';
-import { MapSummaryCard } from './components/map-summary-card';
-import { ReplayOrthoOverlay } from './components/replay-ortho-overlay';
-import { SourcePicker } from './components/source-picker';
-import { ViewerActions } from './components/viewer-actions';
-import { ViewerOverlay } from './components/viewer-overlay';
-import { buildTimelineMarkers } from './timeline-markers';
-import { TransportControls } from './transport/transport-controls';
-import { useSongTransport } from './use-song-transport';
-import { useViewerControls } from './use-viewer-controls';
-import { useViewerSession } from './use-viewer-session';
-import { useViewerShare } from './use-viewer-share';
-import { useViewerSources } from './use-viewer-sources';
-import { quantizedBeatAt } from './viewer-timeline';
-import type { ViewerPanel } from './viewer-types';
+} from "../watch-party/watch-party-viewer-settings";
+import { MapSummaryCard } from "./components/map-summary-card";
+import { ReplayOrthoOverlay } from "./components/replay-ortho-overlay";
+import { SourcePicker } from "./components/source-picker";
+import { ViewerActions } from "./components/viewer-actions";
+import { ViewerOverlay } from "./components/viewer-overlay";
+import { buildTimelineMarkers } from "./timeline-markers";
+import { TransportControls } from "./transport/transport-controls";
+import { useSongTransport } from "./use-song-transport";
+import { useViewerControls } from "./use-viewer-controls";
+import { useViewerSession } from "./use-viewer-session";
+import { useViewerShare } from "./use-viewer-share";
+import { useViewerSources } from "./use-viewer-sources";
+import { quantizedBeatAt } from "./viewer-timeline";
+import type { ViewerPanel } from "./viewer-types";
 
-import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export function ViewerShell() {
   const router = useRouter();
-  const search = useSearch({ from: '/' });
-  const t = useTranslations('viewer');
-  const commonT = useTranslations('common');
-  const partyT = useTranslations('watchParty');
+  const search = useSearch({ from: "/" });
+  const t = useTranslations("viewer");
+  const commonT = useTranslations("common");
+  const partyT = useTranslations("watchParty");
   const partyActive = search.party !== undefined;
   const [settings, setSettings] = useState(() => {
     const saved = loadViewerSettings();
-    return search.lightshow === 'full-lightshow' ? { ...saved, staticLights: false } : saved;
+    return search.lightshow === "full-lightshow" ? { ...saved, staticLights: false } : saved;
   });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const [partyViewerSettingsJson, setPartyViewerSettingsJson] = useState<string | null>(null);
   const partyViewerSettings = useMemo(
-    () => (partyViewerSettingsJson === null ? null : parseWatchPartyViewerSettings(partyViewerSettingsJson)),
+    () =>
+      partyViewerSettingsJson === null
+        ? null
+        : parseWatchPartyViewerSettings(partyViewerSettingsJson),
     [partyViewerSettingsJson],
   );
   const effectiveSettings = useMemo(
@@ -81,9 +91,9 @@ export function ViewerShell() {
   );
   const effectiveSettingsRef = useRef(effectiveSettings);
   effectiveSettingsRef.current = effectiveSettings;
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [lightshowMode, setLightshowMode] = useState<LightshowMode>(
-    search.lightshow ?? (settings.staticLights ? 'static' : 'full'),
+    search.lightshow ?? (settings.staticLights ? "static" : "full"),
   );
   const lightshowModeRef = useRef(lightshowMode);
   const transport = useSongTransport({
@@ -95,12 +105,12 @@ export function ViewerShell() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [chromeVisible, setChromeVisible] = useState(true);
   const [liveChatOpen, setLiveChatOpen] = useState(
-    () => !settings.liveChatCollapsed && window.matchMedia('(min-width: 40rem)').matches,
+    () => !settings.liveChatCollapsed && window.matchMedia("(min-width: 40rem)").matches,
   );
   const [mobileMapCollapseRequest, setMobileMapCollapseRequest] = useState(0);
   const [mobileViewport, setMobileViewport] = useState({
-    chatHeight: 'min(44dvh, 20.4rem)',
-    centerY: '50dvh',
+    chatHeight: "min(44dvh, 20.4rem)",
+    centerY: "50dvh",
     keyboardInset: 0,
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,11 +133,16 @@ export function ViewerShell() {
       : (sources.rows.find((row) => {
           if (row.difficulty === undefined || row.infoDifficulty === undefined) return false;
           return (
-            (search.difficulty === undefined || difficultyRank(row.infoDifficulty.difficulty) === search.difficulty) &&
+            (search.difficulty === undefined ||
+              difficultyRank(row.infoDifficulty.difficulty) === search.difficulty) &&
             (search.characteristic === undefined ||
-              row.infoDifficulty.characteristic.toLowerCase() === search.characteristic.toLowerCase())
+              row.infoDifficulty.characteristic.toLowerCase() ===
+                search.characteristic.toLowerCase())
           );
-        }) ?? sources.rows.find((row) => row.difficulty !== undefined && row.infoDifficulty !== undefined));
+        }) ??
+        sources.rows.find(
+          (row) => row.difficulty !== undefined && row.infoDifficulty !== undefined,
+        ));
   const session = useViewerSession({
     lightshowMode,
     lightshowModeRef,
@@ -154,7 +169,7 @@ export function ViewerShell() {
     )
       return;
     void router.navigate({
-      to: '/',
+      to: "/",
       search: { ...search, difficulty, characteristic: infoDifficulty.characteristic },
       replace: true,
       resetScroll: false,
@@ -192,11 +207,13 @@ export function ViewerShell() {
   const partyIsHost = party.selfCapabilities?.host === true;
   useEffect(() => {
     if (!partyActive) return;
-    const previewUrl = document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
+    const previewUrl = document.querySelector<HTMLMetaElement>(
+      'meta[property="og:image"]',
+    )?.content;
     if (previewUrl === undefined) return;
-    const prefetch = document.createElement('link');
-    prefetch.rel = 'prefetch';
-    prefetch.as = 'image';
+    const prefetch = document.createElement("link");
+    prefetch.rel = "prefetch";
+    prefetch.as = "image";
     prefetch.href = previewUrl;
     document.head.append(prefetch);
     return () => {
@@ -219,7 +236,10 @@ export function ViewerShell() {
     if (!partyActive || !partyIsHost) return;
     const json = encodeWatchPartyViewerSettings(settings, lightshowMode);
     setPartyViewerSettingsJson(json);
-    if (party.serverState?.viewerSettings?.schemaVersion === 1 && party.serverState.viewerSettings.json === json) {
+    if (
+      party.serverState?.viewerSettings?.schemaVersion === 1 &&
+      party.serverState.viewerSettings.json === json
+    ) {
       return;
     }
     const timeout = window.setTimeout(() => {
@@ -228,13 +248,21 @@ export function ViewerShell() {
     return () => {
       window.clearTimeout(timeout);
     };
-  }, [lightshowMode, party.serverState?.viewerSettings, partyActive, partyIsHost, party.setViewerSettings, settings]);
+  }, [
+    lightshowMode,
+    party.serverState?.viewerSettings,
+    partyActive,
+    partyIsHost,
+    party.setViewerSettings,
+    settings,
+  ]);
   const partyMapMatchesSource =
     party.serverState?.map !== undefined &&
     sources.mapIdentity?.hash.toLowerCase() === party.serverState.map.hash.toLowerCase();
   const showMapCard =
     sources.mapMeta !== null &&
-    (!partyActive || (partyMapMatchesSource && (partyIsHost || party.serverState?.mapRevealed === true)));
+    (!partyActive ||
+      (partyMapMatchesSource && (partyIsHost || party.serverState?.mapRevealed === true)));
   useEffect(() => {
     const viewport = window.visualViewport;
     if (viewport === null) return;
@@ -249,9 +277,14 @@ export function ViewerShell() {
           activeElement instanceof HTMLInputElement ||
           activeElement instanceof HTMLTextAreaElement ||
           (activeElement instanceof HTMLElement && activeElement.isContentEditable);
-        const occludedBottom = Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop);
+        const occludedBottom = Math.max(
+          0,
+          window.innerHeight - visualViewport.height - visualViewport.offsetTop,
+        );
         const keyboardInset = editing && occludedBottom > 80 ? occludedBottom : 0;
-        const rootFontSize = Number.parseFloat(window.getComputedStyle(document.documentElement).fontSize);
+        const rootFontSize = Number.parseFloat(
+          window.getComputedStyle(document.documentElement).fontSize,
+        );
         const chatHeight = Math.min(visualViewport.height * 0.44, rootFontSize * 20.4);
         setMobileViewport({
           chatHeight: `${chatHeight}px`,
@@ -262,24 +295,24 @@ export function ViewerShell() {
     }
 
     updateViewport();
-    visualViewport.addEventListener('resize', updateViewport);
-    visualViewport.addEventListener('scroll', updateViewport);
-    window.addEventListener('orientationchange', updateViewport);
-    document.addEventListener('focusin', updateViewport);
-    document.addEventListener('focusout', updateViewport);
+    visualViewport.addEventListener("resize", updateViewport);
+    visualViewport.addEventListener("scroll", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
+    document.addEventListener("focusin", updateViewport);
+    document.addEventListener("focusout", updateViewport);
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      visualViewport.removeEventListener('resize', updateViewport);
-      visualViewport.removeEventListener('scroll', updateViewport);
-      window.removeEventListener('orientationchange', updateViewport);
-      document.removeEventListener('focusin', updateViewport);
-      document.removeEventListener('focusout', updateViewport);
+      visualViewport.removeEventListener("resize", updateViewport);
+      visualViewport.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+      document.removeEventListener("focusin", updateViewport);
+      document.removeEventListener("focusout", updateViewport);
     };
   }, []);
   useEffect(() => {
     if (!remoteActive) return;
     function openChat(event: KeyboardEvent) {
-      if (event.key !== 'F8') return;
+      if (event.key !== "F8") return;
       event.preventDefault();
       setChromeVisible(true);
       setLiveChatOpen(true);
@@ -287,9 +320,9 @@ export function ViewerShell() {
       setMobileMapCollapseRequest((request) => request + 1);
       window.requestAnimationFrame(() => liveChatInputRef.current?.focus());
     }
-    window.addEventListener('keydown', openChat, true);
+    window.addEventListener("keydown", openChat, true);
     return () => {
-      window.removeEventListener('keydown', openChat, true);
+      window.removeEventListener("keydown", openChat, true);
     };
   }, [remoteActive]);
   function toggleHitsounds() {
@@ -359,73 +392,83 @@ export function ViewerShell() {
     scoreId: sources.shareScoreId,
     scoreIdBL: sources.shareScoreIdBL,
     selectedDifficulty:
-      mapSelectionRow?.infoDifficulty ?? sources.rows.find((row) => row.key === session.selectedKey)?.infoDifficulty,
+      mapSelectionRow?.infoDifficulty ??
+      sources.rows.find((row) => row.key === session.selectedKey)?.infoDifficulty,
     settings,
     sourceLink: sources.sourceLink,
     setError,
   });
   const liveInterruption =
-    live.status === 'connecting' || live.status === 'reconnecting'
-      ? { icon: LoaderCircle, iconClassName: 'animate-spin', label: t('liveConnecting') }
-      : live.status === 'loading'
-        ? { icon: Download, iconClassName: '', label: t('liveDownloadingMap'), progress: sources.liveDownloadProgress }
-        : live.status === 'buffering'
-          ? { icon: LoaderCircle, iconClassName: 'animate-spin', label: t('liveBuffering') }
-          : live.playState === LudusPlayState.PAUSED || live.status === 'paused'
-            ? { icon: Pause, iconClassName: 'fill-current', label: t('livePaused') }
+    live.status === "connecting" || live.status === "reconnecting"
+      ? { icon: LoaderCircle, iconClassName: "animate-spin", label: t("liveConnecting") }
+      : live.status === "loading"
+        ? {
+            icon: Download,
+            iconClassName: "",
+            label: t("liveDownloadingMap"),
+            progress: sources.liveDownloadProgress,
+          }
+        : live.status === "buffering"
+          ? { icon: LoaderCircle, iconClassName: "animate-spin", label: t("liveBuffering") }
+          : live.playState === LudusPlayState.PAUSED || live.status === "paused"
+            ? { icon: Pause, iconClassName: "fill-current", label: t("livePaused") }
             : live.playState === LudusPlayState.IN_MENUS
-              ? { icon: Menu, iconClassName: '', label: t('liveInMenus') }
+              ? { icon: Menu, iconClassName: "", label: t("liveInMenus") }
               : null;
   const partyInterruption = !partyActive
     ? null
-    : party.status === 'connecting'
-      ? { icon: LoaderCircle, iconClassName: 'animate-spin', label: partyT('connecting') }
-      : party.status === 'reconnecting'
-        ? { icon: LoaderCircle, iconClassName: 'animate-spin', label: partyT('reconnecting') }
-        : party.status === 'loading' || party.hostMapLoading
+    : party.status === "connecting"
+      ? { icon: LoaderCircle, iconClassName: "animate-spin", label: partyT("connecting") }
+      : party.status === "reconnecting"
+        ? { icon: LoaderCircle, iconClassName: "animate-spin", label: partyT("reconnecting") }
+        : party.status === "loading" || party.hostMapLoading
           ? {
               icon: Download,
-              iconClassName: '',
-              label: partyT('downloadingMap'),
+              iconClassName: "",
+              label: partyT("downloadingMap"),
               progress: sources.liveDownloadProgress,
             }
           : !partyIsHost && party.serverState?.map === undefined
-            ? { icon: UsersRound, iconClassName: '', label: partyT('waitingForHostMap') }
+            ? { icon: UsersRound, iconClassName: "", label: partyT("waitingForHostMap") }
             : !partyIsHost && party.mapReady && party.serverState?.mapRevealed !== true
-              ? { icon: UsersRound, iconClassName: '', label: partyT('waitingForHostStart') }
+              ? { icon: UsersRound, iconClassName: "", label: partyT("waitingForHostStart") }
               : null;
   const sourcePickerVisible =
-    sources.mapMeta === null && !remoteActive && !sources.sourceLoading && !session.environmentLoading;
+    sources.mapMeta === null &&
+    !remoteActive &&
+    !sources.sourceLoading &&
+    !session.environmentLoading;
   const playbackOverlay = remoteActive
     ? null
     : sources.sourceLoading
       ? {
           icon: Download,
-          iconClassName: '',
+          iconClassName: "",
           label:
-            sources.sourceDownload?.kind === 'scoresaber' || sources.sourceDownload?.kind === 'replay'
-              ? t('downloadingReplay')
-              : t('liveDownloadingMap'),
+            sources.sourceDownload?.kind === "scoresaber" ||
+            sources.sourceDownload?.kind === "replay"
+              ? t("downloadingReplay")
+              : t("liveDownloadingMap"),
           progress: sources.sourceDownload?.progress ?? null,
         }
       : session.difficultyLoading
-        ? { icon: LoaderCircle, iconClassName: '', label: t('difficultyLoading') }
+        ? { icon: LoaderCircle, iconClassName: "", label: t("difficultyLoading") }
         : session.environmentLoading
-          ? { icon: LoaderCircle, iconClassName: 'animate-spin', label: t('environmentLoading') }
-          : session.selectedKey !== '' && transport.ended
+          ? { icon: LoaderCircle, iconClassName: "animate-spin", label: t("environmentLoading") }
+          : session.selectedKey !== "" && transport.ended
             ? {
-                actionLabel: commonT('replay'),
+                actionLabel: commonT("replay"),
                 icon: RotateCcw,
-                label: commonT('replay'),
+                label: commonT("replay"),
                 onAction: () => {
                   transport.togglePlay();
                 },
               }
-            : session.selectedKey !== '' && !transport.started
+            : session.selectedKey !== "" && !transport.started
               ? {
-                  actionLabel: commonT('play'),
+                  actionLabel: commonT("play"),
                   icon: Play,
-                  label: commonT('play'),
+                  label: commonT("play"),
                   onAction: () => {
                     transport.togglePlay();
                   },
@@ -433,17 +476,24 @@ export function ViewerShell() {
               : null;
   const viewportStyle: CSSProperties &
     Record<
-      '--live-keyboard-inset' | '--live-mobile-chat-height' | '--live-safe-area-bottom' | '--live-viewport-center-y',
+      | "--live-keyboard-inset"
+      | "--live-mobile-chat-height"
+      | "--live-safe-area-bottom"
+      | "--live-viewport-center-y",
       string
     > = {
-    '--live-keyboard-inset': `${mobileViewport.keyboardInset}px`,
-    '--live-mobile-chat-height': mobileViewport.chatHeight,
-    '--live-safe-area-bottom': mobileViewport.keyboardInset > 0 ? '0px' : 'env(safe-area-inset-bottom)',
-    '--live-viewport-center-y': mobileViewport.centerY,
+    "--live-keyboard-inset": `${mobileViewport.keyboardInset}px`,
+    "--live-mobile-chat-height": mobileViewport.chatHeight,
+    "--live-safe-area-bottom":
+      mobileViewport.keyboardInset > 0 ? "0px" : "env(safe-area-inset-bottom)",
+    "--live-viewport-center-y": mobileViewport.centerY,
   };
   return (
     <main
-      className="relative size-full overflow-hidden bg-black [--live-sidebar-width:18rem]"
+      className={cn(
+        "relative size-full overflow-hidden bg-black [--live-sidebar-width:18rem]",
+        !chromeVisible && "cursor-none",
+      )}
       style={viewportStyle}
       onDragOver={(event) => {
         event.preventDefault();
@@ -455,24 +505,33 @@ export function ViewerShell() {
     >
       <div
         className={cn(
-          'absolute inset-0 transition-[bottom] duration-300 ease-out',
+          "absolute inset-0 transition-[bottom] duration-300 ease-out",
           remoteActive &&
             liveChatOpen &&
-            'max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]',
+            "max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]",
         )}
       >
         <canvas
           ref={session.canvasRef}
           className={cn(
-            'absolute inset-0 size-full transition-[filter,transform] duration-500',
-            sourcePickerVisible && 'scale-[1.01] blur-[3px]',
-            partyActive && !partyIsHost && !(party.mapReady && party.serverState?.mapRevealed === true) && 'invisible',
+            "absolute inset-0 size-full transition-[filter,transform] duration-500",
+            sourcePickerVisible && "scale-[1.01] blur-[3px]",
+            partyActive &&
+              !partyIsHost &&
+              !(party.mapReady && party.serverState?.mapRevealed === true) &&
+              "invisible",
           )}
           onPointerDown={() => {
             setSettingsOpen(false);
           }}
           onWheel={(event) => {
-            if (remoteActive || session.selectedKey === '' || event.deltaY === 0 || event.ctrlKey || event.metaKey)
+            if (
+              remoteActive ||
+              session.selectedKey === "" ||
+              event.deltaY === 0 ||
+              event.ctrlKey ||
+              event.metaKey
+            )
               return;
             transport.seekBeats(Math.sign(event.deltaY) * beatStep, sources.songBpm);
           }}
@@ -481,9 +540,10 @@ export function ViewerShell() {
 
       {settings.orthoCameraEnabled &&
         sources.replayRef.current !== null &&
-        session.selectedKey !== '' &&
+        session.selectedKey !== "" &&
         !isForcedLightshowMode(lightshowMode) &&
-        (!partyActive || (party.mapReady && (partyIsHost || party.serverState?.mapRevealed === true))) && (
+        (!partyActive ||
+          (party.mapReady && (partyIsHost || party.serverState?.mapRevealed === true))) && (
           <ReplayOrthoOverlay
             overlayRef={session.orthoOverlayRef}
             view={settings.orthoCameraView}
@@ -498,12 +558,12 @@ export function ViewerShell() {
           backdropBlur={false}
           className={cn(
             liveChatOpen &&
-              'max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]',
+              "max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]",
           )}
           icon={liveInterruption.icon}
           iconClassName={liveInterruption.iconClassName}
           label={liveInterruption.label}
-          progress={'progress' in liveInterruption ? liveInterruption.progress : undefined}
+          progress={"progress" in liveInterruption ? liveInterruption.progress : undefined}
         />
       )}
 
@@ -511,22 +571,22 @@ export function ViewerShell() {
         <ViewerOverlay
           backdropBlur={false}
           className={cn(
-            'z-20',
-            !partyIsHost && party.mapReady && party.serverState?.mapRevealed !== true && 'bg-black',
+            "z-20",
+            !partyIsHost && party.mapReady && party.serverState?.mapRevealed !== true && "bg-black",
             liveChatOpen &&
-              'max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]',
+              "max-sm:bottom-[calc(var(--live-mobile-chat-height)+var(--live-safe-area-bottom)+var(--live-keyboard-inset))]",
           )}
           icon={partyInterruption.icon}
           iconClassName={partyInterruption.iconClassName}
           label={partyInterruption.label}
-          progress={'progress' in partyInterruption ? partyInterruption.progress : undefined}
+          progress={"progress" in partyInterruption ? partyInterruption.progress : undefined}
         />
       )}
 
       {playbackOverlay !== null && (
         <ViewerOverlay
           {...playbackOverlay}
-          className={'onAction' in playbackOverlay ? '!bottom-16 max-sm:!bottom-24' : undefined}
+          className={"onAction" in playbackOverlay ? "!bottom-16 max-sm:!bottom-24" : undefined}
         />
       )}
 
@@ -534,13 +594,13 @@ export function ViewerShell() {
         <Button
           className="fixed bottom-16 left-1/2 z-40 -translate-x-1/2 rounded-full shadow-xl backdrop-blur-xl max-sm:bottom-24"
           variant="outline"
-          aria-label={t('clickToUnmute')}
+          aria-label={t("clickToUnmute")}
           onClick={() => {
             void (partyActive ? party.unlockAudio() : transport.unlockAudio());
           }}
         >
           <Volume2 />
-          {t('clickToUnmute')}
+          {t("clickToUnmute")}
         </Button>
       )}
 
@@ -563,7 +623,7 @@ export function ViewerShell() {
         accept=".dat,.bsor,.json,.zip,.ogg,.egg,.wav,.mp3"
         onChange={(event) => {
           void sources.loadFiles([...(event.currentTarget.files ?? [])]);
-          event.currentTarget.value = '';
+          event.currentTarget.value = "";
         }}
       />
 
@@ -575,7 +635,7 @@ export function ViewerShell() {
           sources.loadLookup(choice);
         }}
         onAboutClick={() => {
-          setActivePanel('about');
+          setActivePanel("about");
         }}
         onInputChange={sources.setSourceInput}
         onOpenFiles={() => {
@@ -589,18 +649,19 @@ export function ViewerShell() {
       {(showMapCard || remoteActive) && (
         <div
           className={cn(
-            'fixed left-3 top-3 z-30 flex max-h-[calc(100dvh-1.5rem)] flex-col items-start gap-2 transition duration-200 max-sm:left-2 max-sm:top-2 max-sm:max-h-[calc(100dvh-1rem)]',
+            "fixed left-3 top-3 z-30 flex max-h-[calc(100dvh-1.5rem)] flex-col items-start gap-2 transition duration-200 max-sm:left-2 max-sm:top-2 max-sm:max-h-[calc(100dvh-1rem)]",
             remoteActive &&
-              'h-[calc(100dvh-1.5rem)] max-sm:!left-0 max-sm:!top-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:gap-0',
+              "h-[calc(100dvh-1.5rem)] max-sm:!left-0 max-sm:!top-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:gap-0",
             !chromeVisible &&
               (!showMapCard || !settings.keepMapInfoVisible) &&
-              'pointer-events-none -translate-y-2 opacity-0',
+              "pointer-events-none -translate-y-2 opacity-0",
           )}
         >
           {(showMapCard || (partyActive && partyIsHost)) && (
             <div
               className={cn(
-                partyActive && 'flex shrink-0 items-start gap-2 max-sm:w-screen max-sm:flex-col max-sm:gap-0',
+                partyActive &&
+                  "flex shrink-0 items-start gap-2 max-sm:w-screen max-sm:flex-col max-sm:gap-0",
               )}
             >
               {showMapCard && sources.mapMeta !== null && (
@@ -627,28 +688,37 @@ export function ViewerShell() {
                     const difficulty = difficultyRank(row.infoDifficulty.difficulty);
                     if (difficulty === -1) return;
                     void router.navigate({
-                      to: '/',
-                      search: { ...search, difficulty, characteristic: row.infoDifficulty.characteristic },
+                      to: "/",
+                      search: {
+                        ...search,
+                        difficulty,
+                        characteristic: row.infoDifficulty.characteristic,
+                      },
                       resetScroll: false,
                     });
                   }}
                   onBack={() => {
-                    void router.navigate({ to: '/', search: {}, replace: true, reloadDocument: true });
+                    void router.navigate({
+                      to: "/",
+                      search: {},
+                      replace: true,
+                      reloadDocument: true,
+                    });
                   }}
                   onCopyError={() => {
-                    setError(t('errors.copyMapInfo'));
+                    setError(t("errors.copyMapInfo"));
                   }}
                   onSettingsClick={toggleSettings}
                 />
               )}
               {partyActive && partyIsHost && (
-                <div className={chromeVisible ? 'contents' : 'hidden'}>
+                <div className={chromeVisible ? "contents" : "hidden"}>
                   <WatchPartyControls party={party} />
                 </div>
               )}
             </div>
           )}
-          <div className={chromeVisible ? 'contents' : 'hidden'}>
+          <div className={chromeVisible ? "contents" : "hidden"}>
             {liveActive ? (
               <LiveViewerPanel
                 chatInputRef={liveChatInputRef}
@@ -667,7 +737,7 @@ export function ViewerShell() {
                 chatOpen={liveChatOpen}
                 party={party}
                 onLeave={() => {
-                  void router.navigate({ to: '/', search: {}, replace: true });
+                  void router.navigate({ to: "/", search: {}, replace: true });
                 }}
                 onChatOpenChange={(open) => {
                   setLiveChatOpen(open);
@@ -681,9 +751,9 @@ export function ViewerShell() {
                   player={sources.replayPlayer}
                   platform={
                     sources.shareScoreIdBL !== null ||
-                    sources.replayRef.current?.metadata.version.includes('BeatLeader')
-                      ? 'beatleader'
-                      : 'scoresaber'
+                    sources.replayRef.current?.metadata.version.includes("BeatLeader")
+                      ? "beatleader"
+                      : "scoresaber"
                   }
                 />
               )
@@ -693,7 +763,7 @@ export function ViewerShell() {
       )}
 
       <ViewerActions
-        aboutOpen={activePanel === 'about'}
+        aboutOpen={activePanel === "about"}
         aboutTriggerVisible={!sourcePickerVisible}
         chromeVisible={chromeVisible}
         hasMap={showMapCard}
@@ -701,24 +771,25 @@ export function ViewerShell() {
         settingsOpen={settingsOpen}
         shareCategories={share.shareCategories}
         shareIncludeTimecode={share.includeTimecode}
-        shareOpen={activePanel === 'share'}
+        shareOpen={activePanel === "share"}
         shareUrl={share.shareUrl}
         onAboutOpenChange={(open) => {
-          setActivePanel(open ? 'about' : null);
+          setActivePanel(open ? "about" : null);
         }}
         onCopyShare={share.copyShareLink}
         onSettingsClick={toggleSettings}
         onShareCategoriesChange={share.setShareCategories}
         onShareIncludeTimecodeChange={share.setIncludeTimecode}
         onShareOpenChange={(open) => {
-          setActivePanel(open ? 'share' : null);
+          setActivePanel(open ? "share" : null);
         }}
       />
 
-      {session.selectedKey !== '' &&
-        (!partyActive || (party.mapReady && (partyIsHost || party.serverState?.mapRevealed === true))) && (
+      {session.selectedKey !== "" &&
+        (!partyActive ||
+          (party.mapReady && (partyIsHost || party.serverState?.mapRevealed === true))) && (
           <TransportControls
-            mode={partyActive ? 'party' : liveActive ? 'live' : 'playback'}
+            mode={partyActive ? "party" : liveActive ? "live" : "playback"}
             visible={chromeVisible}
             playing={transport.playing}
             ended={transport.ended}
@@ -730,10 +801,10 @@ export function ViewerShell() {
             timelineShareUrl={share.timelineShareUrl}
             timelineCopied={share.timelineCopied}
             panel={
-              activePanel === 'speed' ||
-              activePanel === 'lights' ||
-              activePanel === 'camera' ||
-              activePanel === 'volume'
+              activePanel === "speed" ||
+              activePanel === "lights" ||
+              activePanel === "camera" ||
+              activePanel === "volume"
                 ? activePanel
                 : null
             }
@@ -777,11 +848,13 @@ export function ViewerShell() {
               setSettings((current) => ({ ...current, orthoCameraEnabled }));
             }}
             onMasterVolumeChange={(masterVolume) => {
-              if (settingsRef.current.masterVolume === 0 && masterVolume > 0) void transport.unlockAudio();
+              if (settingsRef.current.masterVolume === 0 && masterVolume > 0)
+                void transport.unlockAudio();
               setSettings((current) => ({ ...current, masterVolume }));
             }}
             onSongVolumeChange={(songVolume) => {
-              if (settingsRef.current.songVolume === 0 && songVolume > 0) void transport.unlockAudio();
+              if (settingsRef.current.songVolume === 0 && songVolume > 0)
+                void transport.unlockAudio();
               setSettings((current) => ({ ...current, songVolume }));
             }}
             onHitsoundVolumeChange={(hitsoundVolume) => {
@@ -793,7 +866,7 @@ export function ViewerShell() {
           />
         )}
 
-      {error !== '' && (
+      {error !== "" && (
         <Alert
           className="fixed bottom-20 left-1/2 z-50 w-[min(34rem,calc(100vw-1.5rem))] -translate-x-1/2"
           aria-live="assertive"
@@ -804,15 +877,15 @@ export function ViewerShell() {
           </span>
           {partyActive && party.canRetryMap && (
             <Button variant="outline" size="sm" onClick={party.retryMap}>
-              {partyT('retry')}
+              {partyT("retry")}
             </Button>
           )}
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={t('dismissError')}
+            aria-label={t("dismissError")}
             onClick={() => {
-              setError('');
+              setError("");
             }}
           >
             <X />
@@ -824,10 +897,12 @@ export function ViewerShell() {
         settings={partyActive && !partyIsHost ? effectiveSettings : settings}
         environments={environmentCatalog}
         hasReplay={sources.replayRef.current !== null}
-        isMapPreview={session.selectedKey !== '' && sources.replayRef.current === null}
+        isMapPreview={session.selectedKey !== "" && sources.replayRef.current === null}
         onChange={(nextSettings) => {
           setSettings((current) =>
-            partyActive && !partyIsHost ? preserveLocalWatchPartyViewerSettings(current, nextSettings) : nextSettings,
+            partyActive && !partyIsHost
+              ? preserveLocalWatchPartyViewerSettings(current, nextSettings)
+              : nextSettings,
           );
         }}
         onClose={() => {

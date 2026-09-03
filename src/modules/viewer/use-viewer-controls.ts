@@ -1,6 +1,6 @@
-import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useEffect, type Dispatch, type RefObject, type SetStateAction } from "react";
 
-import type { ViewerPanel } from './viewer-types';
+import type { ViewerPanel } from "./viewer-types";
 
 interface ViewerControlsOptions {
   activePanel: ViewerPanel;
@@ -35,7 +35,7 @@ export function useViewerControls({
 
   useEffect(() => {
     function keydown(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         event.preventDefault();
         event.stopPropagation();
         setActivePanel(null);
@@ -43,42 +43,45 @@ export function useViewerControls({
       }
       const focused = document.activeElement;
       if (
-        focused?.matches('input[type="text"], textarea, [contenteditable]:not([contenteditable="false"])') === true &&
+        focused?.matches(
+          'input[type="text"], textarea, [contenteditable]:not([contenteditable="false"])',
+        ) === true &&
         !event.metaKey &&
         !event.ctrlKey &&
         !event.altKey
       )
         return;
       const key = event.key.toLowerCase();
-      const transportKey = event.code === 'Space' || event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+      const transportKey =
+        event.code === "Space" || event.key === "ArrowLeft" || event.key === "ArrowRight";
       if (transportReadOnly && transportKey) return;
-      if (!transportKey && key !== 'm' && key !== 'h' && key !== 'f' && event.key !== '?') return;
-      document.querySelector<HTMLElement>('[data-transport-controls] :focus')?.blur();
+      if (!transportKey && key !== "m" && key !== "h" && key !== "f" && event.key !== "?") return;
+      document.querySelector<HTMLElement>("[data-transport-controls] :focus")?.blur();
       event.preventDefault();
       event.stopPropagation();
-      if (event.repeat && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      if (event.code === 'Space') {
+      if (event.repeat && event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (event.code === "Space") {
         const nextPlaying = onTogglePlay();
         if (nextPlaying !== undefined) {
           setChromeVisible(!nextPlaying);
           if (nextPlaying) setActivePanel(null);
         }
-      } else if (event.key === 'ArrowLeft') onSeekBeats(-beatStep);
-      else if (event.key === 'ArrowRight') onSeekBeats(beatStep);
-      else if (key === 'm') onToggleHitsounds();
-      else if (key === 'h') setChromeVisible((visible) => !visible);
-      else if (key === 'f') {
+      } else if (event.key === "ArrowLeft") onSeekBeats(-beatStep);
+      else if (event.key === "ArrowRight") onSeekBeats(beatStep);
+      else if (key === "m") onToggleHitsounds();
+      else if (key === "h") setChromeVisible((visible) => !visible);
+      else if (key === "f") {
         if (document.fullscreenElement === null) void document.documentElement.requestFullscreen();
         else void document.exitFullscreen();
-      } else if (event.key === '?') {
+      } else if (event.key === "?") {
         triggerRef.current = null;
-        setActivePanel((panel) => (panel === 'about' ? null : 'about'));
+        setActivePanel((panel) => (panel === "about" ? null : "about"));
       }
     }
 
-    window.addEventListener('keydown', keydown, true);
+    window.addEventListener("keydown", keydown, true);
     return () => {
-      window.removeEventListener('keydown', keydown, true);
+      window.removeEventListener("keydown", keydown, true);
     };
   });
 
@@ -100,20 +103,52 @@ export function useViewerControls({
     }
 
     function showForKey(event: KeyboardEvent) {
-      if (event.code !== 'Space' && event.key.toLowerCase() !== 'h') show();
+      if (event.code !== "Space" && event.key.toLowerCase() !== "h") show();
     }
 
-    window.addEventListener('pointermove', show);
-    window.addEventListener('pointerdown', show);
-    window.addEventListener('wheel', show);
-    window.addEventListener('keydown', showForKey, true);
+    window.addEventListener("pointermove", show);
+    window.addEventListener("pointerdown", show);
+    window.addEventListener("wheel", show);
+    window.addEventListener("keydown", showForKey, true);
     scheduleHide();
     return () => {
       clearTimeout(timeout);
-      window.removeEventListener('pointermove', show);
-      window.removeEventListener('pointerdown', show);
-      window.removeEventListener('wheel', show);
-      window.removeEventListener('keydown', showForKey, true);
+      window.removeEventListener("pointermove", show);
+      window.removeEventListener("pointerdown", show);
+      window.removeEventListener("wheel", show);
+      window.removeEventListener("keydown", showForKey, true);
     };
   }, [activePanel, autoHide, playing]);
+
+  useEffect(() => {
+    if (!playing) return;
+
+    let wakeLock: WakeLockSentinel | null = null;
+    let mounted = true;
+
+    async function requestWakeLock() {
+      if (!mounted) return;
+      if ("wakeLock" in navigator) {
+        wakeLock = await navigator.wakeLock.request("screen");
+      }
+    }
+
+    void requestWakeLock();
+
+    function onVisibilityChange() {
+      if (wakeLock !== null && document.visibilityState === "visible") {
+        void requestWakeLock();
+      }
+    }
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      mounted = false;
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      if (wakeLock !== null) {
+        wakeLock.release().catch(() => {});
+      }
+    };
+  }, [playing]);
 }
