@@ -55,7 +55,7 @@ export interface HitScoreVisualizerConfig {
   timeOffset: number;
 }
 
-const richTextTag = /<([^>]*)>/g;
+const richTextTag = /<([^<>]*)>/g;
 
 export function hitScoreTextRuns(value: string) {
   const runs: HitScoreTextRun[] = [];
