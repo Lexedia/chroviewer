@@ -285,20 +285,21 @@ export function createObstacleMaterial(fog: FogUniforms, color: Rgb) {
 }
 
 export function createLegacySolidObstacleMaterial(color: Rgb) {
-  const material = new ShaderMaterial({
-    defines: { INSTANCED_COLOR: '', INSTANCED_COLOR_ALPHA: '' },
-    vertexShader: OBJECT_VERT,
-    fragmentShader: LEGACY_SOLID_OBSTACLE_FRAG,
-    uniforms: {
-      _Color: { value: linearColor(color) },
-      _CutoutSize: { value: 1.2 },
-      _CutoutEdgeWidth: { value: 0 },
-      _CutoutSoftening: { value: 0 },
-    },
-    depthWrite: true,
-    side: DoubleSide,
-  });
-  return writeScoreOccluderStencil(material);
+  return writeScoreOccluderStencil(
+    new ShaderMaterial({
+      defines: { INSTANCED_COLOR: '', INSTANCED_COLOR_ALPHA: '' },
+      vertexShader: OBJECT_VERT,
+      fragmentShader: LEGACY_SOLID_OBSTACLE_FRAG,
+      uniforms: {
+        _Color: { value: linearColor(color) },
+        _CutoutSize: { value: 1.2 },
+        _CutoutEdgeWidth: { value: 0 },
+        _CutoutSoftening: { value: 0 },
+      },
+      depthWrite: true,
+      side: DoubleSide,
+    }),
+  );
 }
 
 export function createObstacleDisplacementMaterial(
