@@ -228,23 +228,24 @@ export function createSaberGlowMaterial(fog: FogUniforms, color: Rgb, coreColor:
 }
 
 export function createSaberCoreMaterial(fog: FogUniforms, color: Rgb) {
-  const material = new ShaderMaterial({
-    vertexShader: OBJECT_VERT,
-    fragmentShader: SABER_GLOW_FRAG,
-    uniforms: {
-      ...materialFogUniforms(fog),
-      _Color: { value: linearColor(color) },
-      _ColorMultiplier: { value: 2.05 },
-      _CoreColor: { value: linearColor(color) },
-      _CoreMultiplier: { value: 2.05 },
-      _CoreBlend: { value: 0 },
-      _BloomAlpha: { value: 0.3 },
-      _CoreBloomAlpha: { value: 0.3 },
-      _CutoutSize: { value: 1 },
-      _CutoutEdgeWidth: { value: 0 },
-    },
-  });
-  return writeScoreOccluderStencil(material);
+  return writeScoreOccluderStencil(
+    new ShaderMaterial({
+      vertexShader: OBJECT_VERT,
+      fragmentShader: SABER_GLOW_FRAG,
+      uniforms: {
+        ...materialFogUniforms(fog),
+        _Color: { value: linearColor(color) },
+        _ColorMultiplier: { value: 2.05 },
+        _CoreColor: { value: linearColor(color) },
+        _CoreMultiplier: { value: 2.05 },
+        _CoreBlend: { value: 0 },
+        _BloomAlpha: { value: 0.3 },
+        _CoreBloomAlpha: { value: 0.3 },
+        _CutoutSize: { value: 1 },
+        _CutoutEdgeWidth: { value: 0 },
+      },
+    }),
+  );
 }
 
 export function createSaberTrailMaterial(color: Rgb) {
