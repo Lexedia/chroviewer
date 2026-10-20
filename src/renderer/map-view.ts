@@ -301,6 +301,10 @@ export class MapView implements RenderView {
     this.replayView.setSaberSettings(settings);
   }
 
+  setReplayScoreHidden(hidden: boolean) {
+    this.replayView.setScoreHidden(hidden);
+  }
+
   setScreenDisplacementEffects(enabled: boolean) {
     this.screenDisplacementEffects = enabled;
     this.postBloom.setScreenDisplacementEnabled(enabled);

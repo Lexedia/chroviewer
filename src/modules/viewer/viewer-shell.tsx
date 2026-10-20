@@ -41,6 +41,7 @@ import { ViewerActions } from './components/viewer-actions';
 import { ViewerOverlay } from './components/viewer-overlay';
 import { buildTimelineMarkers } from './timeline-markers';
 import { TransportControls } from './transport/transport-controls';
+import { useBeatdleBridge } from './use-beatdle-bridge';
 import { useSongTransport } from './use-song-transport';
 import { useViewerControls } from './use-viewer-controls';
 import { useViewerSession } from './use-viewer-session';
@@ -61,12 +62,20 @@ export function ViewerShell() {
   const commonT = useTranslations('common');
   const partyT = useTranslations('watchParty');
   const partyActive = search.party !== undefined;
+  const beatdle = search.beatdle === true;
+  const [beatdleSongUnlocked, setBeatdleSongUnlocked] = useState(false);
   const [settings, setSettings] = useState(() => {
     const saved = loadViewerSettings();
     return search.lightshow === 'full-lightshow' ? { ...saved, staticLights: false } : saved;
   });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const audioSettings = useMemo(
+    () => (beatdle && !beatdleSongUnlocked ? { ...settings, songMuted: true } : settings),
+    [beatdle, beatdleSongUnlocked, settings],
+  );
+  const audioSettingsRef = useRef(audioSettings);
+  audioSettingsRef.current = audioSettings;
   const [partyViewerSettingsJson, setPartyViewerSettingsJson] = useState<string | null>(null);
   const partyViewerSettings = useMemo(
     () => (partyViewerSettingsJson === null ? null : parseWatchPartyViewerSettings(partyViewerSettingsJson)),
@@ -76,8 +85,8 @@ export function ViewerShell() {
     () =>
       partyActive && partyViewerSettings !== null
         ? applyWatchPartyViewerSettings(settings, partyViewerSettings)
-        : settings,
-    [partyActive, partyViewerSettings, settings],
+        : audioSettings,
+    [audioSettings, partyActive, partyViewerSettings, settings],
   );
   const effectiveSettingsRef = useRef(effectiveSettings);
   effectiveSettingsRef.current = effectiveSettings;
@@ -88,8 +97,8 @@ export function ViewerShell() {
   const lightshowModeRef = useRef(lightshowMode);
   const transport = useSongTransport({
     lightshowModeRef,
-    settings,
-    settingsRef,
+    settings: audioSettings,
+    settingsRef: audioSettingsRef,
   });
   const [activePanel, setActivePanel] = useState<ViewerPanel>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -129,6 +138,7 @@ export function ViewerShell() {
           );
         }) ?? sources.rows.find((row) => row.difficulty !== undefined && row.infoDifficulty !== undefined));
   const session = useViewerSession({
+    hideReplayScore: beatdle,
     lightshowMode,
     lightshowModeRef,
     requestedMapRow: mapSelectionRow,
@@ -234,6 +244,7 @@ export function ViewerShell() {
     sources.mapIdentity?.hash.toLowerCase() === party.serverState.map.hash.toLowerCase();
   const showMapCard =
     sources.mapMeta !== null &&
+    !beatdle &&
     (!partyActive || (partyMapMatchesSource && (partyIsHost || party.serverState?.mapRevealed === true)));
   useEffect(() => {
     const viewport = window.visualViewport;
@@ -329,6 +340,24 @@ export function ViewerShell() {
     onTogglePlay: transport.togglePlay,
   });
 
+  useBeatdleBridge({
+    enabled: beatdle,
+    ready: session.selectedKey !== '',
+    duration: transport.duration,
+    onCommand(command) {
+      if (command.type === 'beatdle:unmute') {
+        setBeatdleSongUnlocked(true);
+        void transport.unlockAudio();
+      } else if (command.type === 'beatdle:play') {
+        transport.play();
+      } else if (command.type === 'beatdle:pause') {
+        transport.pause();
+      } else {
+        transport.seek(command.time);
+      }
+    },
+  });
+
   const beatStep = transport.beatStepNumerator / transport.beatStepDenominator;
   const displayBeat = quantizedBeatAt(transport.time, sources.songBpm, beatStep);
   const selectedDifficulty = useMemo(
@@ -395,7 +424,7 @@ export function ViewerShell() {
               ? { icon: UsersRound, iconClassName: '', label: partyT('waitingForHostStart') }
               : null;
   const sourcePickerVisible =
-    sources.mapMeta === null && !remoteActive && !sources.sourceLoading && !session.environmentLoading;
+    sources.mapMeta === null && !remoteActive && !beatdle && !sources.sourceLoading && !session.environmentLoading;
   const playbackOverlay = remoteActive
     ? null
     : sources.sourceLoading
@@ -676,7 +705,8 @@ export function ViewerShell() {
                 }}
               />
             ) : (
-              sources.replayPlayer !== null && (
+              sources.replayPlayer !== null &&
+              !beatdle && (
                 <ReplayPlayerCard
                   player={sources.replayPlayer}
                   platform={
@@ -694,10 +724,10 @@ export function ViewerShell() {
 
       <ViewerActions
         aboutOpen={activePanel === 'about'}
-        aboutTriggerVisible={!sourcePickerVisible}
+        aboutTriggerVisible={!sourcePickerVisible && !beatdle}
         chromeVisible={chromeVisible}
         hasMap={showMapCard}
-        shareEnabled={!partyActive}
+        shareEnabled={!partyActive && !beatdle}
         settingsOpen={settingsOpen}
         shareCategories={share.shareCategories}
         shareIncludeTimecode={share.includeTimecode}
@@ -727,7 +757,7 @@ export function ViewerShell() {
             songBpm={sources.songBpm}
             beatStepNumerator={transport.beatStepNumerator}
             beatStepDenominator={transport.beatStepDenominator}
-            timelineShareUrl={share.timelineShareUrl}
+            timelineShareUrl={beatdle ? null : share.timelineShareUrl}
             timelineCopied={share.timelineCopied}
             panel={
               activePanel === 'speed' ||
@@ -743,7 +773,7 @@ export function ViewerShell() {
             replayCamera={settings.replayCamera}
             orthoCameraEnabled={settings.orthoCameraEnabled}
             hasReplay={sources.replayRef.current !== null}
-            songMuted={settings.songMuted}
+            songMuted={audioSettings.songMuted}
             masterMuted={settings.masterMuted}
             masterVolume={settings.masterVolume}
             songVolume={settings.songVolume}

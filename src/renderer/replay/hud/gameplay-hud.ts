@@ -174,6 +174,10 @@ export class ReplayGameplayHud {
     this.root.visible = enabled && this.timeline !== null;
   }
 
+  setScoreHidden(hidden: boolean) {
+    for (const text of [this.score, this.rank, this.accuracy]) text.visible = !hidden;
+  }
+
   setHitScoreVisualizer(hitScoreVisualizer: HitScoreVisualizerConfig | null) {
     if (this.timeline === null) return;
     this.timeline = { ...this.timeline, hitScoreVisualizer };

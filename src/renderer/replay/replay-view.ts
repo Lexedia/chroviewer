@@ -241,6 +241,10 @@ export class ReplayView {
     this.gameplayHud.setHitScoreVisualizer(hitScoreVisualizer);
   }
 
+  setScoreHidden(hidden: boolean) {
+    this.gameplayHud.setScoreHidden(hidden);
+  }
+
   setMapHasNotes(hasMapNotes: boolean) {
     this.cameraController.setMapHasNotes(hasMapNotes);
   }

@@ -234,14 +234,12 @@ const v2MaterialSchema = z
     _shaderKeywords: optionalKeywordsSchema,
     _track: beatSaberTrackSchema,
   })
-  .transform(
-    (data): ChromaMaterial => ({
-      shader: data._shader,
-      color: data._color,
-      keywords: data._shaderKeywords,
-      tracks: data._track,
-    }),
-  );
+  .transform((data): ChromaMaterial => ({
+    shader: data._shader,
+    color: data._color,
+    keywords: data._shaderKeywords,
+    tracks: data._track,
+  }));
 
 const v3MaterialSchema = z
   .looseObject({
@@ -250,14 +248,12 @@ const v3MaterialSchema = z
     shaderKeywords: optionalKeywordsSchema,
     track: beatSaberTrackSchema,
   })
-  .transform(
-    (data): ChromaMaterial => ({
-      shader: data.shader,
-      color: data.color,
-      keywords: data.shaderKeywords,
-      tracks: data.track,
-    }),
-  );
+  .transform((data): ChromaMaterial => ({
+    shader: data.shader,
+    color: data.color,
+    keywords: data.shaderKeywords,
+    tracks: data.track,
+  }));
 
 const v2GeometrySchema = z
   .looseObject({
@@ -265,13 +261,11 @@ const v2GeometrySchema = z
     _material: z.union([z.string(), v2MaterialSchema]),
     _collision: beatSaberBooleanSchema,
   })
-  .transform(
-    (data): ChromaGeometry => ({
-      type: data._type,
-      material: data._material,
-      collision: data._collision,
-    }),
-  );
+  .transform((data): ChromaGeometry => ({
+    type: data._type,
+    material: data._material,
+    collision: data._collision,
+  }));
 
 const v3GeometrySchema = z
   .looseObject({
@@ -279,13 +273,11 @@ const v3GeometrySchema = z
     material: z.union([z.string(), v3MaterialSchema]),
     collision: beatSaberBooleanSchema,
   })
-  .transform(
-    (data): ChromaGeometry => ({
-      type: data.type,
-      material: data.material,
-      collision: data.collision,
-    }),
-  );
+  .transform((data): ChromaGeometry => ({
+    type: data.type,
+    material: data.material,
+    collision: data.collision,
+  }));
 
 const lightWithIdSchema = z
   .looseObject({ lightID: optionalIntegerSchema, type: optionalIntegerSchema })
@@ -376,24 +368,22 @@ const v3EnhancementSchema = z
     components: componentsSchema.optional().catch(undefined),
   })
   .refine((data) => data.geometry !== undefined || data.id !== undefined)
-  .transform(
-    (data): ChromaEnvironmentEnhancement => ({
-      id: data.id,
-      lookupMethod: data.lookupMethod ?? 'Exact',
-      geometry: data.geometry,
-      track: data.track,
-      duplicate: data.duplicate,
-      active: data.active,
-      scale: data.scale,
-      position: data.position,
-      rotation: data.rotation,
-      localPosition: data.localPosition,
-      localRotation: data.localRotation,
-      components: data.components,
-      lightId: data.components?.ILightWithId?.lightId,
-      lightType: data.components?.ILightWithId?.type,
-    }),
-  );
+  .transform((data): ChromaEnvironmentEnhancement => ({
+    id: data.id,
+    lookupMethod: data.lookupMethod ?? 'Exact',
+    geometry: data.geometry,
+    track: data.track,
+    duplicate: data.duplicate,
+    active: data.active,
+    scale: data.scale,
+    position: data.position,
+    rotation: data.rotation,
+    localPosition: data.localPosition,
+    localRotation: data.localRotation,
+    components: data.components,
+    lightId: data.components?.ILightWithId?.lightId,
+    lightType: data.components?.ILightWithId?.type,
+  }));
 
 const pointValueSchema = beatSaberJsonValueSchema.optional();
 

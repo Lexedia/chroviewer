@@ -3,6 +3,7 @@ interface ViteTypeOptions {
 }
 
 interface ImportMetaEnv {
+  readonly VITE_BEATDLE_PARENT_ORIGINS?: string;
   readonly VITE_BEATLEADER_API_URL?: string;
   readonly VITE_BEATSAVER_API_URL?: string;
   readonly VITE_ENABLED_SOURCES?: string;

@@ -21,6 +21,8 @@ export const Route = createFileRoute('/')({
   ssr: false,
   validateSearch: viewerSearchSchema,
   head: async ({ match }) => {
+    if (match.search.beatdle === true) return { meta: [{ title: 'Beatdle' }, { name: 'robots', content: 'noindex' }] };
+
     const partyPlayerId = match.search.party;
     if (partyPlayerId !== undefined) {
       const metadataResult = await Result.tryPromise({

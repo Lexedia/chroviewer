@@ -26,6 +26,7 @@ type SongTransport = ReturnType<typeof useSongTransport>;
 type ViewerSources = ReturnType<typeof useViewerSources>;
 
 interface ViewerSessionOptions {
+  hideReplayScore: boolean;
   lightshowMode: LightshowMode;
   lightshowModeRef: RefObject<LightshowMode>;
   requestedMapRow?: DifficultyRow;
@@ -52,6 +53,7 @@ interface ViewerSessionOptions {
 }
 
 export function useViewerSession({
+  hideReplayScore,
   lightshowMode,
   lightshowModeRef,
   requestedMapRow,
@@ -94,6 +96,10 @@ export function useViewerSession({
   useEffect(() => {
     viewerRef.current?.view.setScreenDisplacementEffects(settings.screenDisplacementEffects);
   }, [settings.screenDisplacementEffects]);
+
+  useEffect(() => {
+    viewerRef.current?.view.setReplayScoreHidden(hideReplayScore);
+  }, [hideReplayScore, viewerReady]);
 
   useEffect(() => {
     viewerRef.current?.view.setPreviewNotesLookAtPlayer(settings.previewNotesLookAtPlayer);

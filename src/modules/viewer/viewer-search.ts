@@ -54,6 +54,7 @@ export const viewerSearchSchema = z.pipe(
     matchId: z.catch(z.optional(liveIdSchema), undefined),
     watcherPlayerId: z.catch(z.optional(livePlayerIdSchema), undefined),
     authToken: z.catch(z.optional(z.string().check(z.minLength(1), z.maxLength(4096))), undefined),
+    beatdle: z.catch(z.optional(z.boolean()), undefined),
   }),
   z.transform((search) => {
     if (search.party !== undefined) {
@@ -73,6 +74,7 @@ export const viewerSearchSchema = z.pipe(
         matchId: undefined,
         watcherPlayerId: undefined,
         authToken: undefined,
+        beatdle: undefined,
       };
     }
     if (search.playerId !== undefined) {
@@ -85,6 +87,7 @@ export const viewerSearchSchema = z.pipe(
         difficulty: undefined,
         characteristic: undefined,
         beat: undefined,
+        beatdle: undefined,
       };
     }
     if (search.replayUrl !== undefined)
@@ -95,6 +98,7 @@ export const viewerSearchSchema = z.pipe(
         scoreIdBL: undefined,
         difficulty: undefined,
         characteristic: undefined,
+        beatdle: undefined,
       };
     if (search.scoreId !== undefined)
       return { ...search, map: undefined, scoreIdBL: undefined, difficulty: undefined, characteristic: undefined };
